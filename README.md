@@ -67,9 +67,10 @@ any other app, and toggle the desktop ecosystem section in Settings.
 - **Keyboard & mouse support**:
   - Start / Meta key or Search key: open the Start menu
   - Esc: close the Start menu
-  - Arrow keys + Enter: navigate and open
+  - Tab/arrow keys + Enter: focus and open the selected desktop or Start item
   - Right-click: context menu
   - Alt+Tab: switch recent apps
+  - Remote PC: toolbar Full button or Alt+Enter requests fullscreen on Android 14+
   - F5: reload the app list
 - **Customization**: icon size, automatic or fixed grid columns, labels,
   double-tap to launch, taskbar fade, fullscreen, clock seconds and external

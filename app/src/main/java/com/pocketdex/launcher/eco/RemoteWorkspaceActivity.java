@@ -583,6 +583,10 @@ public final class RemoteWorkspaceActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_ENTER && event.isAltPressed()) {
+            toggleFullscreenMode();
+            return true;
+        }
         if (keyCode == KeyEvent.KEYCODE_BACK && webView != null && webView.canGoBack()) {
             webView.goBack();
             return true;

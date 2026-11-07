@@ -1074,10 +1074,16 @@ public class DesktopView extends FrameLayout {
             tile.setPadding(dp(6), dp(10), dp(6), dp(10));
             tile.setFocusable(true);
             tile.setClickable(true);
+            tile.setTag(entry);
 
             Drawable background = Ui.ripple(ctx,
                     Ui.rounded(ctx, 0xFF232838, 12), 0x44FFFFFF);
             tile.setBackground(background);
+            tile.setOnFocusChangeListener((view, hasFocus) -> {
+                view.setBackground(hasFocus
+                        ? Ui.roundedStroke(ctx, 0x44232838, 12, COLOR_ACCENT, 1.5f)
+                        : background);
+            });
 
             ImageView icon = new ImageView(ctx);
             Drawable drawable = entry.icon(ctx);
@@ -1651,11 +1657,18 @@ public class DesktopView extends FrameLayout {
                 || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
             if (startOpen) {
-                List<EcoItem> matches = filteredApps(
-                        search == null ? "" : search.getText().toString());
-                if (!matches.isEmpty()) {
-                    launchFromUi(matches.get(0));
+                View focus = findFocus();
+                if (focus != null && focus != search
+                        && focus.getTag() instanceof EcoItem) {
+                    launchFromUi((EcoItem) focus.getTag());
                     return true;
+                }
+                if (focus == search) {
+                    List<EcoItem> matches = filteredApps(search.getText().toString());
+                    if (!matches.isEmpty()) {
+                        launchFromUi(matches.get(0));
+                        return true;
+                    }
                 }
                 return false;
             }
