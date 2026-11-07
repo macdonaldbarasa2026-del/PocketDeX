@@ -70,7 +70,8 @@ resources as local RAM or local GPU capacity.
 2. **Runtime boundary:** add `AppDescriptor`, `SupportReport`,
    `DeviceCapabilityProfile` and `RuntimeProvider`; route Android launches
    through `AndroidAppRuntime` and allow providers to register by runtime id.
-   Continue with lifecycle sessions before integrating a second backend.
+   This boundary now has Android and Guacamole providers; runtime lifecycle
+   sessions and provider event reporting remain to be added.
 3. **Remote workspace prototype:** the first client is implemented through a
    user-managed HTTPS Apache Guacamole web application, with server-side RDP or
    VNC bridging. Next add provider/session lifecycle, reconnect and latency
@@ -89,15 +90,16 @@ PocketDeX has the desktop launcher, app catalog, external-display presentation,
 built-in Files/Editor/Terminal/Calculator apps and Android app launch path. The
 Android launch path now goes through `AppDescriptor`, `RuntimeProvider`,
 `RuntimeRegistry` and `AndroidAppRuntime`, which reports whether an app is
-ready, missing, disabled or invalid. A capability snapshot records Android API,
+ready, missing, disabled or invalid. `GuacamoleRuntime` checks whether the
+remote workspace has a valid HTTPS gateway configured before launching the
+remote activity. A capability snapshot records Android API,
 supported ABIs, system memory state and connected presentation displays for
 runtime decisions and is visible in Settings as a refreshable device details
 card. This snapshot stays local; it does not claim to measure GPU performance
-or predict app compatibility. The registry can accept additional
-providers. A separate Remote PC activity can open a user-managed Guacamole
-HTTPS gateway for RDP/VNC sessions, but direct Linux/Windows providers,
-native per-app remote windows and runtime session lifecycle are still future
-work.
+or predict app compatibility. The registry can accept additional providers.
+The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions,
+but direct local Linux/Windows providers, native per-app remote windows and
+runtime session lifecycle are still future work.
 
 ## Platform references
 

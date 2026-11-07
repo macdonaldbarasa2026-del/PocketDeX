@@ -6,6 +6,12 @@ import android.graphics.drawable.Drawable;
 import android.widget.Toast;
 
 import com.pocketdex.launcher.R;
+import com.pocketdex.launcher.runtime.AppDescriptor;
+import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
+import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
+import com.pocketdex.launcher.runtime.RuntimeProvider;
+import com.pocketdex.launcher.runtime.RuntimeRegistry;
+import com.pocketdex.launcher.runtime.SupportReport;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +61,10 @@ public final class EcoApps {
 
         @Override
         public void open(Context c) {
+            if (REMOTE_PC.equals(id)) {
+                openRemoteWorkspace(c);
+                return;
+            }
             Intent intent = activity != null
                     ? new Intent(c, activity)
                     : new Intent(android.provider.Settings.ACTION_SETTINGS);
@@ -63,6 +73,30 @@ public final class EcoApps {
                 c.startActivity(intent);
             } catch (Exception e) {
                 Toast.makeText(c, "Unable to open " + name, Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        private void openRemoteWorkspace(Context c) {
+            AppDescriptor app = new AppDescriptor(GuacamoleWorkspaceConfig.APP_ID,
+                    name, GuacamoleWorkspaceConfig.RUNTIME_ID, "workspace");
+            RuntimeProvider runtime = RuntimeRegistry.getDefault()
+                    .find(GuacamoleWorkspaceConfig.RUNTIME_ID);
+            if (runtime == null) {
+                Toast.makeText(c, "Remote workspace runtime is unavailable",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            try {
+                DeviceCapabilityProfile capabilities = DeviceCapabilityProfile.capture(c);
+                SupportReport report = runtime.inspect(c, app, capabilities);
+                if (!report.isReady()) {
+                    Toast.makeText(c, report.message(), Toast.LENGTH_LONG).show();
+                    return;
+                }
+                runtime.launch(c, app, capabilities);
+            } catch (Exception e) {
+                Toast.makeText(c, "Unable to open remote workspace",
+                        Toast.LENGTH_SHORT).show();
             }
         }
     }

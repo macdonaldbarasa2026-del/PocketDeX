@@ -20,14 +20,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.pocketdex.launcher.Ui;
+import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 
-import java.net.URI;
 
 /** Remote desktop viewer for a user-managed HTTPS Apache Guacamole server. */
 public final class RemoteWorkspaceActivity extends Activity {
-    public static final String PREFS = "pocketdex_remote";
-    public static final String KEY_GUACAMOLE_URL = "guacamole_url";
-
     private static final int BG = 0xFF0B0D12;
     private static final int TEXT = 0xFFF4F6FB;
     private static final int DIM = 0xFF9AA3B5;
@@ -43,9 +40,7 @@ public final class RemoteWorkspaceActivity extends Activity {
         getWindow().setNavigationBarColor(BG);
         buildUi();
 
-        String savedUrl = getSharedPreferences(PREFS, MODE_PRIVATE)
-                .getString(KEY_GUACAMOLE_URL, "");
-        Uri endpoint = normalizeEndpoint(savedUrl);
+        Uri endpoint = GuacamoleWorkspaceConfig.endpoint(this);
         if (endpoint == null) {
             status.setText("Set an HTTPS Guacamole server in PocketDeX Settings.");
             return;
@@ -144,34 +139,6 @@ public final class RemoteWorkspaceActivity extends Activity {
                 && trustedOrigin.getHost() != null
                 && trustedOrigin.getHost().equalsIgnoreCase(candidate.getHost())
                 && effectivePort(trustedOrigin) == effectivePort(candidate);
-    }
-
-    /** Accept only an HTTPS base URL and remove fragments or query data. */
-    public static Uri normalizeEndpoint(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            URI parsed = new URI(value.trim());
-            if (!"https".equalsIgnoreCase(parsed.getScheme())
-                    || parsed.getHost() == null || parsed.getHost().isEmpty()
-                    || parsed.getUserInfo() != null || parsed.getQuery() != null
-                    || parsed.getPort() == 0 || parsed.getPort() > 65535) {
-                return null;
-            }
-            String path = parsed.getRawPath();
-            if (path == null || path.isEmpty()) {
-                path = "/";
-            }
-            if (!path.endsWith("/")) {
-                path += "/";
-            }
-            Uri.Builder builder = new Uri.Builder().scheme("https").encodedAuthority(
-                    parsed.getRawAuthority()).encodedPath(path);
-            return builder.build();
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private int effectivePort(Uri uri) {

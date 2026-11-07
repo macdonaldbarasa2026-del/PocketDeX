@@ -13,6 +13,7 @@ public final class RuntimeRegistry {
 
     public RuntimeRegistry() {
         register(new AndroidAppRuntime());
+        register(new GuacamoleRuntime());
     }
 
     public static RuntimeRegistry getDefault() {

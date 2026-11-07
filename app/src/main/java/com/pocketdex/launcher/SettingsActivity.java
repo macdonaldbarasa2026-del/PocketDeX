@@ -17,8 +17,8 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.pocketdex.launcher.eco.RemoteWorkspaceActivity;
 import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
+import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 
 public class SettingsActivity extends Activity {
 
@@ -354,13 +354,13 @@ public class SettingsActivity extends Activity {
         endpoint.setInputType(android.text.InputType.TYPE_CLASS_TEXT
                 | android.text.InputType.TYPE_TEXT_VARIATION_URI);
         endpoint.setHint("https://your-server/guacamole/");
-        endpoint.setText(getSharedPreferences(RemoteWorkspaceActivity.PREFS, MODE_PRIVATE)
-                .getString(RemoteWorkspaceActivity.KEY_GUACAMOLE_URL, ""));
+        endpoint.setText(getSharedPreferences(GuacamoleWorkspaceConfig.PREFS, MODE_PRIVATE)
+                .getString(GuacamoleWorkspaceConfig.KEY_ENDPOINT, ""));
         remoteCard.addView(endpoint, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         actionButton(remoteCard, "Save and connect", () -> {
-            android.net.Uri normalized = RemoteWorkspaceActivity
+            android.net.Uri normalized = GuacamoleWorkspaceConfig
                     .normalizeEndpoint(endpoint.getText().toString());
             if (normalized == null) {
                 android.widget.Toast.makeText(this,
@@ -368,10 +368,8 @@ public class SettingsActivity extends Activity {
                         android.widget.Toast.LENGTH_LONG).show();
                 return;
             }
-            getSharedPreferences(RemoteWorkspaceActivity.PREFS, MODE_PRIVATE)
-                    .edit().putString(RemoteWorkspaceActivity.KEY_GUACAMOLE_URL,
-                            normalized.toString()).apply();
-            startActivity(new Intent(this, RemoteWorkspaceActivity.class));
+            GuacamoleWorkspaceConfig.saveEndpoint(this, normalized);
+            EcoApps.byId(EcoApps.REMOTE_PC).open(this);
         });
     }
 
