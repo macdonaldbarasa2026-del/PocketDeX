@@ -17,6 +17,7 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.pocketdex.launcher.eco.EcoApps;
 import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
 import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 
