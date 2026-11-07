@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
+import android.os.PowerManager;
 import android.view.Display;
 import android.view.InputDevice;
 
@@ -29,6 +30,7 @@ public final class DeviceCapabilityProfile {
     private final boolean freeformWindowManagementSupported;
     private final boolean physicalKeyboardConnected;
     private final boolean pointerConnected;
+    private final int thermalStatus;
 
     private DeviceCapabilityProfile(int androidApi, String manufacturer, String model,
                                     List<String> supportedAbis, long advertisedMemoryBytes,
@@ -40,7 +42,8 @@ public final class DeviceCapabilityProfile {
                                     boolean secondaryDisplayActivitiesSupported,
                                     boolean freeformWindowManagementSupported,
                                     boolean physicalKeyboardConnected,
-                                    boolean pointerConnected) {
+                                    boolean pointerConnected,
+                                    int thermalStatus) {
         this.androidApi = androidApi;
         this.manufacturer = manufacturer;
         this.model = model;
@@ -58,6 +61,7 @@ public final class DeviceCapabilityProfile {
         this.freeformWindowManagementSupported = freeformWindowManagementSupported;
         this.physicalKeyboardConnected = physicalKeyboardConnected;
         this.pointerConnected = pointerConnected;
+        this.thermalStatus = thermalStatus;
     }
 
     public static DeviceCapabilityProfile capture(Context context) {
@@ -82,6 +86,15 @@ public final class DeviceCapabilityProfile {
             availableMemory = memory.availMem;
             appMemoryClassMb = activityManager.getMemoryClass();
             lowMemory = memory.lowMemory;
+        }
+
+        int thermalStatus = -1;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            PowerManager powerManager = (PowerManager)
+                    context.getSystemService(Context.POWER_SERVICE);
+            if (powerManager != null) {
+                thermalStatus = powerManager.getCurrentThermalStatus();
+            }
         }
 
         int presentationDisplays = 0;
@@ -124,7 +137,7 @@ public final class DeviceCapabilityProfile {
                 appMemoryClassMb, lowMemory,
                 presentationDisplays, externalDisplaySummaries,
                 secondaryDisplayActivities,
-                freeformWindowManagement, physicalKeyboard, pointer);
+                freeformWindowManagement, physicalKeyboard, pointer, thermalStatus);
     }
 
     private static String summarizeExternalDisplay(Context context, Display display,
@@ -217,5 +230,10 @@ public final class DeviceCapabilityProfile {
     /** Whether Android currently reports a connected, non-virtual mouse or stylus. */
     public boolean hasPointerConnected() {
         return pointerConnected;
+    }
+
+    /** Android OS thermal severity snapshot, or -1 when the API is unavailable. */
+    public int thermalStatus() {
+        return thermalStatus;
     }
 }

@@ -538,11 +538,36 @@ public class SettingsActivity extends Activity {
                 .append("Freeform window management: ")
                 .append(profile.supportsFreeformWindowManagement()
                         ? "advertised" : "not advertised").append("\n")
-                .append("Per-display policy may still ignore window bounds. GPU performance is not measured.");
+                .append("OS thermal status (snapshot): ")
+                .append(thermalStatusLabel(profile.thermalStatus())).append("\n")
+                .append("Thermal status is not a temperature reading; vendor reporting may vary. "
+                        + "Per-display policy may still ignore window bounds. "
+                        + "GPU performance is not measured.");
         for (String displaySummary : profile.externalDisplaySummaries()) {
             details.append('\n').append(displaySummary);
         }
         capabilityDetails.setText(details.toString());
+    }
+
+    private String thermalStatusLabel(int status) {
+        switch (status) {
+            case android.os.PowerManager.THERMAL_STATUS_NONE:
+                return "none reported";
+            case android.os.PowerManager.THERMAL_STATUS_LIGHT:
+                return "light mitigation";
+            case android.os.PowerManager.THERMAL_STATUS_MODERATE:
+                return "moderate mitigation";
+            case android.os.PowerManager.THERMAL_STATUS_SEVERE:
+                return "severe mitigation";
+            case android.os.PowerManager.THERMAL_STATUS_CRITICAL:
+                return "critical";
+            case android.os.PowerManager.THERMAL_STATUS_EMERGENCY:
+                return "emergency";
+            case android.os.PowerManager.THERMAL_STATUS_SHUTDOWN:
+                return "shutdown status";
+            default:
+                return "not reported";
+        }
     }
 
     private void openEco(String className) {

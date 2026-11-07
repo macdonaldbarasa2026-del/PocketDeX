@@ -48,6 +48,18 @@ Apache references: [Guacamole JavaScript client API](https://guacamole.apache.or
 [Guacamole extension capabilities](https://guacamole.apache.org/doc/gug/guacamole-ext.html),
 and [Guacamole protocol synchronization](https://guacamole.apache.org/doc/gug/protocol-reference.html).
 
+## Device thermal status
+
+The Settings capability card samples Android's `PowerManager` thermal status
+when opened or resumed on API 29+. This is an OS severity category intended to
+reflect thermal mitigation, not a sensor temperature or a direct CPU/GPU
+performance measurement. Device makers define thermal behavior, and Android's
+developer guidance notes that some devices may report `THERMAL_STATUS_NONE`
+even when headroom support is incomplete. Treat it as a useful snapshot, not a
+guarantee that sustained workloads are unthrottled. See the
+[PowerManager thermal API](https://developer.android.com/reference/android/os/PowerManager#getCurrentThermalStatus())
+and [AOSP thermal mitigation notes](https://source.android.com/docs/core/power/thermal-mitigation).
+
 ## Local runtime research
 
 Winlator remains a separate app launch target. PocketDeX records the installed
