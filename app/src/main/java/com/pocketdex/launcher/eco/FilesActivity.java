@@ -461,7 +461,7 @@ public class FilesActivity extends Activity {
         return String.format(Locale.US, "%.2f GB", bytes / 1024f / 1024f / 1024f);
     }
 
-    private static final class DocAdapter extends BaseAdapter {
+    private final class DocAdapter extends BaseAdapter {
         private final List<Doc> data;
 
         DocAdapter(List<Doc> data) {
