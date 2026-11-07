@@ -20,6 +20,8 @@ import android.widget.TextView;
 import com.pocketdex.launcher.eco.EcoApps;
 import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
 import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
+import com.pocketdex.launcher.runtime.RuntimeSession;
+import com.pocketdex.launcher.runtime.RuntimeSessionStore;
 import com.pocketdex.launcher.runtime.WinlatorRuntime;
 
 public class SettingsActivity extends Activity {
@@ -41,6 +43,7 @@ public class SettingsActivity extends Activity {
 
     private LinearLayout content;
     private TextView capabilityDetails;
+    private TextView remoteSessionDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +67,7 @@ public class SettingsActivity extends Activity {
         buildAppearance();
         buildEcosystem();
         buildRemoteWorkspace();
+        buildRemoteSessionStatus();
         buildLocalWindowsRuntime();
         buildCapabilities();
         buildBehavior();
@@ -392,6 +396,44 @@ public class SettingsActivity extends Activity {
                         android.widget.Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void buildRemoteSessionStatus() {
+        section("Runtime session status");
+        LinearLayout sessionCard = card();
+        remoteSessionDetails = subtitleText("");
+        remoteSessionDetails.setPadding(0, dp(10), 0, dp(8));
+        sessionCard.addView(remoteSessionDetails);
+        actionButton(sessionCard, "Refresh session status", this::updateRuntimeSessionDetails);
+        updateRuntimeSessionDetails();
+    }
+
+    private void updateRuntimeSessionDetails() {
+        if (remoteSessionDetails == null) {
+            return;
+        }
+        RuntimeSession session = RuntimeSessionStore.current(this);
+        if (session == null) {
+            remoteSessionDetails.setText("No runtime launch has been recorded yet.");
+            return;
+        }
+        StringBuilder details = new StringBuilder()
+                .append("App: ").append(session.appId()).append(" (")
+                .append(session.runtimeId()).append(")\n")
+                .append("State: ").append(session.state()).append("\n")
+                .append(session.detail());
+        if (session.gatewayResponseMillis() >= 0) {
+            details.append("\nGateway response: ")
+                    .append(session.gatewayResponseMillis()).append(" ms (HTTP ")
+                    .append(session.gatewayHttpStatus()).append(")");
+        }
+        remoteSessionDetails.setText(details.toString());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateRuntimeSessionDetails();
     }
 
     private void updateCapabilityDetails() {

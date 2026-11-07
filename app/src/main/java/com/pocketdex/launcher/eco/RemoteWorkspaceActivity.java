@@ -26,6 +26,8 @@ import android.widget.TextView;
 
 import com.pocketdex.launcher.Ui;
 import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
+import com.pocketdex.launcher.runtime.RuntimeSession;
+import com.pocketdex.launcher.runtime.RuntimeSessionStore;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,7 +47,9 @@ public final class RemoteWorkspaceActivity extends Activity {
     private TextView status;
     private TextView gatewayMetric;
     private Uri trustedOrigin;
+    private String sessionId;
     private int gatewayProbeGeneration;
+    private boolean mainFrameHttpError;
     private ValueCallback<Uri[]> pendingFileCallback;
     private String pendingDownloadUrl;
     private String pendingDownloadName;
@@ -56,11 +60,14 @@ public final class RemoteWorkspaceActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         buildUi();
+        sessionId = getIntent().getStringExtra(RuntimeSessionStore.EXTRA_SESSION_ID);
 
         Uri endpoint = GuacamoleWorkspaceConfig.endpoint(this);
         if (endpoint == null) {
             status.setText("Set an HTTPS Guacamole server in PocketDeX Settings.");
             gatewayMetric.setText("Gateway response time unavailable: no server configured.");
+            updateSession(RuntimeSession.State.DEGRADED,
+                    "No valid HTTPS gateway is configured.");
             return;
         }
         trustedOrigin = endpoint;
@@ -186,19 +193,27 @@ public final class RemoteWorkspaceActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                mainFrameHttpError = false;
                 gatewayProbeGeneration++;
                 gatewayMetric.setText("Gateway response time: checking…");
                 status.setText("Loading Guacamole gateway…");
+                updateSession(RuntimeSession.State.CONNECTING, "Loading gateway page.");
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                status.setText("Gateway page loaded. Sign in and select a "
-                        + "remote connection.");
+                if (!mainFrameHttpError) {
+                    status.setText("Gateway page loaded. Sign in and select a "
+                            + "remote connection.");
+                }
             }
 
             @Override
             public void onPageCommitVisible(WebView view, String url) {
+                if (!mainFrameHttpError) {
+                    updateSession(RuntimeSession.State.GATEWAY_READY,
+                            "Gateway page loaded; remote desktop connection state is managed by Guacamole.");
+                }
                 probeGatewayResponseTime();
             }
 
@@ -218,6 +233,8 @@ public final class RemoteWorkspaceActivity extends Activity {
                 if (request.isForMainFrame()) {
                     status.setText("Gateway connection failed. Check the address "
                             + "or network, then Reconnect.");
+                    updateSession(RuntimeSession.State.DEGRADED,
+                            "Gateway page request failed.");
                 }
             }
 
@@ -225,8 +242,11 @@ public final class RemoteWorkspaceActivity extends Activity {
             public void onReceivedHttpError(WebView view, WebResourceRequest request,
                                             android.webkit.WebResourceResponse response) {
                 if (request.isForMainFrame()) {
+                    mainFrameHttpError = true;
                     status.setText("Gateway returned HTTP " + response.getStatusCode()
                             + ". Check the server URL and access policy.");
+                    updateSession(RuntimeSession.State.DEGRADED,
+                            "Gateway returned HTTP " + response.getStatusCode() + ".");
                 }
             }
 
@@ -235,6 +255,8 @@ public final class RemoteWorkspaceActivity extends Activity {
                                            android.net.http.SslError error) {
                 handler.cancel();
                 status.setText("TLS certificate validation failed. Connection cancelled.");
+                updateSession(RuntimeSession.State.DEGRADED,
+                        "TLS certificate validation failed.");
             }
         });
     }
@@ -278,9 +300,15 @@ public final class RemoteWorkspaceActivity extends Activity {
                 connection.setReadTimeout(10000);
                 int responseCode = connection.getResponseCode();
                 long elapsed = SystemClock.elapsedRealtime() - start;
+                RuntimeSessionStore.recordGatewayResponse(RemoteWorkspaceActivity.this,
+                        sessionId, elapsed, responseCode,
+                        "HTTPS gateway response; this is not remote desktop input latency.");
                 outcome = "Gateway response: " + elapsed + " ms (HTTP "
                         + responseCode + "). This does not measure the remote desktop session.";
             } catch (Exception ignored) {
+                RuntimeSessionStore.recordGatewayResponse(RemoteWorkspaceActivity.this,
+                        sessionId, -1L, -1,
+                        "Gateway response probe failed; remote session health is unknown.");
             } finally {
                 if (connection != null) {
                     connection.disconnect();
@@ -307,6 +335,12 @@ public final class RemoteWorkspaceActivity extends Activity {
     private void clearPendingDownload() {
         pendingDownloadUrl = null;
         pendingDownloadName = null;
+    }
+
+    private void updateSession(RuntimeSession.State state, String detail) {
+        if (sessionId != null) {
+            RuntimeSessionStore.transition(this, sessionId, state, detail);
+        }
     }
 
     private void downloadTo(Uri target) {
@@ -465,6 +499,7 @@ public final class RemoteWorkspaceActivity extends Activity {
     }
 
     private void disconnect() {
+        updateSession(RuntimeSession.State.STOPPED, "Remote workspace was disconnected by the user.");
         if (webView != null) {
             webView.stopLoading();
             webView.clearHistory();
@@ -485,6 +520,15 @@ public final class RemoteWorkspaceActivity extends Activity {
     @Override
     protected void onDestroy() {
         gatewayProbeGeneration++;
+        if (isFinishing()) {
+            RuntimeSession current = RuntimeSessionStore.find(this, sessionId);
+            if (current != null && sessionId != null && sessionId.equals(current.id())
+                    && current.state() != RuntimeSession.State.STOPPED
+                    && current.state() != RuntimeSession.State.FAILED) {
+                updateSession(RuntimeSession.State.STOPPED,
+                        "Remote workspace activity closed.");
+            }
+        }
         clearPendingDownload();
         finishFileChooser(null);
         if (webView != null) {

@@ -70,13 +70,17 @@ resources as local RAM or local GPU capacity.
 2. **Runtime boundary:** add `AppDescriptor`, `SupportReport`,
    `DeviceCapabilityProfile` and `RuntimeProvider`; route Android launches
    through `AndroidAppRuntime` and allow providers to register by runtime id.
-   This boundary now has Android, Guacamole and Winlator providers; runtime
-   lifecycle sessions and provider event reporting remain to be added.
+   This boundary now has Android, Guacamole and Winlator providers. The local
+   `RuntimeSessionStore` keeps a bounded recent history of launch dispatches;
+   Guacamole sessions also record gateway page lifecycle, response time and
+   HTTP status. Android/Winlator process lifecycle callbacks and
+   session-scoped resource telemetry remain to be added.
 3. **Remote workspace prototype:** the first client is implemented through a
    user-managed HTTPS Apache Guacamole web application, with server-side RDP or
-   VNC bridging. Next add provider/session lifecycle, reconnect and latency
-   reporting. Do not provision cloud compute until provider, cost and
-   credentials are explicitly chosen.
+   VNC bridging. The client supports reconnect, system file pickers for file
+   transfers, and a single HTTPS gateway response-time probe. It does not report
+   RDP/VNC input latency or resource usage. Do not provision cloud compute
+   until provider, cost and credentials are explicitly chosen.
 4. **Local compatibility research:** PocketDeX now detects and launches the
    separately installed Winlator app on ARM64 devices. Next add per-app
    shortcuts and benchmark a published device/app matrix. Do not assume Android's
@@ -105,8 +109,13 @@ or predict app compatibility. The registry can accept additional providers.
 The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
 `WinlatorRuntime` checks for the separate `com.winlator` app and an ARM64 ABI,
 then launches its home screen; PocketDeX does not yet import individual Windows
-shortcuts or manage Winlator containers. Native per-app remote windows and
-runtime session lifecycle are still future work.
+shortcuts or manage Winlator containers. `RuntimeSession` and
+`RuntimeSessionStore` keep the latest 20 dispatch/session snapshots locally,
+without credentials or transferred file data. Settings exposes the latest
+dispatch; Guacamole updates its state through gateway page load, transport
+errors and user disconnect. Native per-app remote windows, actual Android and
+Winlator process lifecycle callbacks, and session-scoped resource telemetry
+remain future work.
 
 ## Platform references
 

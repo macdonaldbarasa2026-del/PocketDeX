@@ -50,7 +50,17 @@ public final class AndroidAppRuntime implements RuntimeProvider {
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         intent.setComponent(component(app));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        RuntimeSession session = RuntimeSessionStore.begin(context, app);
+        try {
+            context.startActivity(intent);
+            RuntimeSessionStore.transition(context, session.id(),
+                    RuntimeSession.State.DISPATCHED,
+                    "Android activity launch handed to the system.");
+        } catch (Exception e) {
+            RuntimeSessionStore.transition(context, session.id(),
+                    RuntimeSession.State.FAILED, "Android activity could not be opened.");
+            throw e;
+        }
     }
 
     private ComponentName component(AppDescriptor app) {

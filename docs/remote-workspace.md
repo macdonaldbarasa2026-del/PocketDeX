@@ -37,6 +37,11 @@ full desktop depending on the host configuration.
 5. Choose **Disconnect** to stop the page and clear the WebView cookies. Sign
    out from the Guacamole page first if the server provides a sign-out action.
 
+Settings → **Runtime session status** shows recent launch handoff and gateway
+page state. Android and Winlator are reported as dispatched because PocketDeX
+does not receive lifecycle callbacks from those other applications. Guacamole
+gateway readiness also does not prove an RDP/VNC connection is active.
+
 When the gateway requests an upload, PocketDeX opens Android's system file
 picker. Only user-selected `content://` files are returned to the page; PocketDeX
 does not grant broad storage access. Downloads from the configured HTTPS server

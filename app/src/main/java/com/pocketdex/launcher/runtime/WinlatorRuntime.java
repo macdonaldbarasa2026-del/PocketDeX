@@ -54,6 +54,16 @@ public final class WinlatorRuntime implements RuntimeProvider {
             throw new IllegalStateException("Winlator has no launchable activity.");
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        RuntimeSession session = RuntimeSessionStore.begin(context, app);
+        try {
+            context.startActivity(intent);
+            RuntimeSessionStore.transition(context, session.id(),
+                    RuntimeSession.State.DISPATCHED,
+                    "Winlator launch handed to Android; app and container state are not observable here.");
+        } catch (Exception e) {
+            RuntimeSessionStore.transition(context, session.id(),
+                    RuntimeSession.State.FAILED, "Winlator could not be opened.");
+            throw e;
+        }
     }
 }
