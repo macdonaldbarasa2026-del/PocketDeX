@@ -7,6 +7,7 @@
     <string name="all_apps">All apps</string>
     <string name="open">Open</string>
     <string name="open_window">Open in window</string>
+    <string name="open_fullscreen">Open full screen</string>
     <string name="open_external">Open on external display</string>
     <string name="pin_desktop">Pin to desktop</string>
     <string name="unpin_desktop">Unpin from desktop</string>
