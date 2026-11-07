@@ -30,6 +30,10 @@ full desktop depending on the host configuration.
    Android must advertise activity launches on secondary displays, and the
    display must be on, non-private and allowed for this activity; otherwise
    PocketDeX opens it on the current display.
+   On desktop-windowing systems, Remote PC requests a near-full-display window
+   on that external display and exposes Android's optional **New window**
+   affordance for a separate session. Each system-opened window gets its own
+   local runtime-session record. Android may ignore window-size hints.
 3. Select an available remote connection. Use a hardware keyboard and pointer
    for desktop interaction; the Android device and display must support the
    desired windowed/external-display behavior.

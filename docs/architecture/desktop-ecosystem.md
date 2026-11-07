@@ -146,6 +146,11 @@ does not treat that device-wide feature as a guarantee that every display will
 accept requested launch bounds. Windowed launches skip bounds when Android
 does not advertise the feature and tell the user that the app is opening
 normally.
+Built-in activities declare default desktop-window sizes and minimums for
+system-driven launches. Remote PC exposes Android's optional new-window
+affordance; when PocketDeX targets an eligible external display on a
+freeform-capable device, it requests near-full-display bounds. Android and
+device policy may ignore these sizing requests.
 On Android versions that expose `Display.isInternal()`, PocketDeX excludes
 built-in displays from external-display selection even if they advertise
 presentation support. Older versions fall back to the non-default display ID

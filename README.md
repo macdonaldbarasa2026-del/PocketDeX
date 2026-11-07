@@ -54,7 +54,8 @@ any other app, and toggle the desktop ecosystem section in Settings.
 - **Taskbar** with Start button, pinned apps, recent apps, clock/date, battery,
   network status and a settings shortcut.
 - **Windowed launching** through Android freeform window bounds where the device
-  supports it (fallback: normal fullscreen).
+  supports it (fallback: normal fullscreen). Built-in apps request usable
+  default sizes, and Remote PC can open as a separate system window.
 - **External display desktop** over HDMI / USB-C using a second `Presentation`
   desktop, and per-app "Open on external display".
 - Per-app external-display launches follow Android's device and display policy;

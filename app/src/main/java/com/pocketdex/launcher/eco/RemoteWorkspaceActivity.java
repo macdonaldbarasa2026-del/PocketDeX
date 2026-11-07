@@ -29,6 +29,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.pocketdex.launcher.Ui;
+import com.pocketdex.launcher.runtime.AppDescriptor;
 import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 import com.pocketdex.launcher.runtime.RuntimeSession;
 import com.pocketdex.launcher.runtime.RuntimeSessionStore;
@@ -37,6 +38,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /** Remote desktop viewer for a user-managed HTTPS Apache Guacamole server. */
@@ -46,6 +49,7 @@ public final class RemoteWorkspaceActivity extends Activity {
     private static final int BG = 0xFF0B0D12;
     private static final int TEXT = 0xFFF4F6FB;
     private static final int DIM = 0xFF9AA3B5;
+    private static final Set<String> ACTIVE_SESSION_IDS = new HashSet<>();
 
     private WebView webView;
     private TextView status;
@@ -66,7 +70,20 @@ public final class RemoteWorkspaceActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         buildUi();
-        sessionId = getIntent().getStringExtra(RuntimeSessionStore.EXTRA_SESSION_ID);
+        String requestedSessionId = getIntent().getStringExtra(
+                RuntimeSessionStore.EXTRA_SESSION_ID);
+        if (requestedSessionId != null && claimSessionId(requestedSessionId)) {
+            sessionId = requestedSessionId;
+        } else {
+            RuntimeSession session = RuntimeSessionStore.begin(this,
+                    new AppDescriptor(GuacamoleWorkspaceConfig.APP_ID, "Remote PC",
+                            GuacamoleWorkspaceConfig.RUNTIME_ID, "workspace"));
+            sessionId = session.id();
+            claimSessionId(sessionId);
+            RuntimeSessionStore.transition(this, sessionId,
+                    RuntimeSession.State.DISPATCHED,
+                    "Remote PC opened in a separate Android system window.");
+        }
 
         Uri endpoint = GuacamoleWorkspaceConfig.endpoint(this);
         if (endpoint == null) {
@@ -399,6 +416,16 @@ public final class RemoteWorkspaceActivity extends Activity {
         }
     }
 
+    private static synchronized boolean claimSessionId(String id) {
+        return id != null && ACTIVE_SESSION_IDS.add(id);
+    }
+
+    private static synchronized void releaseSessionId(String id) {
+        if (id != null) {
+            ACTIVE_SESSION_IDS.remove(id);
+        }
+    }
+
     private void downloadTo(Uri target) {
         final String source = pendingDownloadUrl;
         final String userAgent = webView == null ? null : webView.getSettings().getUserAgentString();
@@ -598,6 +625,7 @@ public final class RemoteWorkspaceActivity extends Activity {
     @Override
     protected void onDestroy() {
         gatewayProbeGeneration++;
+        releaseSessionId(sessionId);
         if (isFinishing()) {
             RuntimeSession current = RuntimeSessionStore.find(this, sessionId);
             if (current != null && sessionId != null && sessionId.equals(current.id())

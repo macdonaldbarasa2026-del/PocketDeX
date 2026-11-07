@@ -5,8 +5,10 @@ import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
+import android.util.DisplayMetrics;
 import android.view.Display;
 
 /** Targets a connected, eligible external display when the user opts in. */
@@ -36,6 +38,13 @@ public final class RemoteWorkspaceDisplayLauncher {
                 }
                 ActivityOptions options = ActivityOptions.makeBasic()
                         .setLaunchDisplayId(display.getDisplayId());
+                if (context.getPackageManager().hasSystemFeature(
+                        PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT)) {
+                    Rect bounds = nearFullScreenBounds(display);
+                    if (bounds != null) {
+                        options.setLaunchBounds(bounds);
+                    }
+                }
                 context.startActivity(intent, options.toBundle());
                 return true;
             } catch (Exception ignored) {
@@ -43,6 +52,18 @@ public final class RemoteWorkspaceDisplayLauncher {
             }
         }
         return false;
+    }
+
+    private static Rect nearFullScreenBounds(Display display) {
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getRealMetrics(metrics);
+        if (metrics.widthPixels <= 0 || metrics.heightPixels <= 0) {
+            return null;
+        }
+        int marginX = Math.round(metrics.widthPixels * 0.03f);
+        int marginY = Math.round(metrics.heightPixels * 0.04f);
+        return new Rect(marginX, marginY,
+                metrics.widthPixels - marginX, metrics.heightPixels - marginY);
     }
 
     private static boolean isEligible(Context context, Display display, Intent intent) {

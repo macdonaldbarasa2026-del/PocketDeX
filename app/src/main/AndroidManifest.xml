@@ -41,7 +41,14 @@
             android:exported="false"
             android:label="@string/settings_title"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
-            android:theme="@style/Theme.PocketDeX" />
+            android:theme="@style/Theme.PocketDeX">
+            <layout
+                android:defaultWidth="80%"
+                android:defaultHeight="85%"
+                android:gravity="center"
+                android:minWidth="400dp"
+                android:minHeight="300dp" />
+        </activity>
 
         <activity
             android:name=".eco.FilesActivity"
@@ -50,6 +57,8 @@
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
             android:theme="@style/Theme.PocketDeX">
+            <layout android:defaultWidth="75%" android:defaultHeight="78%"
+                android:gravity="center" android:minWidth="320dp" android:minHeight="240dp" />
             <property
                 android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
                 android:value="true" />
@@ -62,6 +71,8 @@
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
             android:theme="@style/Theme.PocketDeX">
+            <layout android:defaultWidth="75%" android:defaultHeight="78%"
+                android:gravity="center" android:minWidth="320dp" android:minHeight="240dp" />
             <property
                 android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
                 android:value="true" />
@@ -74,6 +85,8 @@
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
             android:theme="@style/Theme.PocketDeX">
+            <layout android:defaultWidth="75%" android:defaultHeight="78%"
+                android:gravity="center" android:minWidth="320dp" android:minHeight="240dp" />
             <property
                 android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
                 android:value="true" />
@@ -86,6 +99,8 @@
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
             android:theme="@style/Theme.PocketDeX">
+            <layout android:defaultWidth="50%" android:defaultHeight="70%"
+                android:gravity="center" android:minWidth="280dp" android:minHeight="320dp" />
             <property
                 android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
                 android:value="true" />
@@ -98,7 +113,13 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
-            android:theme="@style/Theme.PocketDeX" />
+            android:theme="@style/Theme.PocketDeX">
+            <layout android:defaultWidth="92%" android:defaultHeight="90%"
+                android:gravity="center" android:minWidth="480dp" android:minHeight="320dp" />
+            <property
+                android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
+                android:value="true" />
+        </activity>
 
         <receiver
             android:name=".PackageChangeReceiver"
