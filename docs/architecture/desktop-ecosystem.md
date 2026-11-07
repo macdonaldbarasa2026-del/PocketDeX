@@ -90,8 +90,9 @@ Android launch path now goes through `AppDescriptor`, `RuntimeProvider`,
 `RuntimeRegistry` and `AndroidAppRuntime`, which reports whether an app is
 ready, missing, disabled or invalid. A capability snapshot records Android API,
 supported ABIs, system memory state and connected presentation displays for
-runtime decisions. This snapshot stays local; it does not claim to measure GPU
-performance or predict app compatibility. The registry can accept additional
+runtime decisions and is visible in Settings as a refreshable device details
+card. This snapshot stays local; it does not claim to measure GPU performance
+or predict app compatibility. The registry can accept additional
 providers, but no Linux, Windows or remote provider exists yet. The next code
 milestone is runtime session lifecycle before connecting a second backend.
 

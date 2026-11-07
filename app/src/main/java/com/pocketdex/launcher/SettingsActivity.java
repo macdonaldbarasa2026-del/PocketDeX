@@ -16,6 +16,8 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
+
 public class SettingsActivity extends Activity {
 
     private static final int BG = 0xFF0B0D12;
@@ -34,6 +36,7 @@ public class SettingsActivity extends Activity {
     }
 
     private LinearLayout content;
+    private TextView capabilityDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,7 @@ public class SettingsActivity extends Activity {
         buildHeader();
         buildAppearance();
         buildEcosystem();
+        buildCapabilities();
         buildBehavior();
         buildHome();
         buildAbout();
@@ -314,6 +318,39 @@ public class SettingsActivity extends Activity {
                 openEco("com.pocketdex.launcher.eco.TerminalActivity"));
         actionButton(buttons, "Open Calculator", () ->
                 openEco("com.pocketdex.launcher.eco.CalculatorActivity"));
+    }
+
+    private void buildCapabilities() {
+        section("Device capabilities");
+        LinearLayout capabilityCard = card();
+
+        capabilityDetails = new TextView(this);
+        capabilityDetails.setTextColor(DIM);
+        capabilityDetails.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        capabilityDetails.setLineSpacing(dp(3), 1f);
+        capabilityDetails.setPadding(0, dp(12), 0, dp(8));
+        capabilityCard.addView(capabilityDetails);
+        updateCapabilityDetails();
+
+        actionButton(capabilityCard, "Refresh device details", this::updateCapabilityDetails);
+    }
+
+    private void updateCapabilityDetails() {
+        DeviceCapabilityProfile profile = DeviceCapabilityProfile.capture(this);
+        String abis = profile.supportedAbis().isEmpty()
+                ? "Unknown" : String.join(", ", profile.supportedAbis());
+        String totalMemory = android.text.format.Formatter.formatFileSize(
+                this, profile.totalMemoryBytes());
+        String availableMemory = android.text.format.Formatter.formatFileSize(
+                this, profile.availableMemoryBytes());
+        capabilityDetails.setText("Device: " + profile.manufacturer() + " "
+                + profile.model() + "\n"
+                + "Android API: " + profile.androidApi() + "\n"
+                + "Supported app ABIs: " + abis + "\n"
+                + "System RAM: " + totalMemory + " total; " + availableMemory
+                + " currently available\n"
+                + "Presentation displays: " + profile.presentationDisplayCount() + "\n"
+                + "GPU performance is not measured by this report.");
     }
 
     private void openEco(String className) {
