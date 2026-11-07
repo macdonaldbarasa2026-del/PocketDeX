@@ -78,7 +78,8 @@ resources as local RAM or local GPU capacity.
 3. **Remote workspace prototype:** the first client is implemented through a
    user-managed HTTPS Apache Guacamole web application, with server-side RDP or
    VNC bridging. The client supports reconnect, system file pickers for file
-   transfers, and a single HTTPS gateway response-time probe. It does not report
+   transfers, a single HTTPS gateway response-time probe, and opt-in activity
+   launch on an external display when the device allows it. It does not report
    RDP/VNC input latency or resource usage. Do not provision cloud compute
    until provider, cost and credentials are explicitly chosen.
 4. **Local compatibility research:** PocketDeX now detects and launches the

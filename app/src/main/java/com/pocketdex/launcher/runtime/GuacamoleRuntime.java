@@ -40,10 +40,16 @@ public final class GuacamoleRuntime implements RuntimeProvider {
         Intent intent = new Intent(context, RemoteWorkspaceActivity.class);
         intent.putExtra(RuntimeSessionStore.EXTRA_SESSION_ID, session.id());
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        RuntimeSessionStore.transition(context, session.id(),
-                RuntimeSession.State.DISPATCHED, "Remote workspace activity opened.");
         try {
-            context.startActivity(intent);
+            boolean externalDisplay = RemoteWorkspaceDisplayLauncher
+                    .launchOnExternalDisplay(context, intent);
+            if (!externalDisplay) {
+                context.startActivity(intent);
+            }
+            RuntimeSessionStore.transition(context, session.id(),
+                    RuntimeSession.State.DISPATCHED, externalDisplay
+                            ? "Remote workspace opened on an eligible external display."
+                            : "Remote workspace opened on the current display.");
         } catch (Exception e) {
             RuntimeSessionStore.transition(context, session.id(),
                     RuntimeSession.State.FAILED, "Remote workspace could not be opened.");

@@ -366,6 +366,11 @@ public class SettingsActivity extends Activity {
         remoteCard.addView(endpoint, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        switchRow(remoteCard, "Open Remote PC on an external display",
+                "Use a connected, allowed HDMI or USB-C display when available",
+                GuacamoleWorkspaceConfig.launchOnExternalDisplay(this),
+                checked -> GuacamoleWorkspaceConfig.setLaunchOnExternalDisplay(this, checked));
+
         actionButton(remoteCard, "Save and connect", () -> {
             android.net.Uri normalized = GuacamoleWorkspaceConfig
                     .normalizeEndpoint(endpoint.getText().toString());

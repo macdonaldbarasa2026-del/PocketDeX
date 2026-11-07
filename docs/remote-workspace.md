@@ -26,6 +26,10 @@ full desktop depending on the host configuration.
    such as `https://desktop.example.net/guacamole/`.
 2. Choose **Save and connect**. PocketDeX opens the Guacamole web client, where
    you authenticate with the account configured by the server owner.
+   Settings can optionally route this activity to an attached external display.
+   Android must advertise activity launches on secondary displays, and the
+   display must be on, non-private and allowed for this activity; otherwise
+   PocketDeX opens it on the current display.
 3. Select an available remote connection. Use a hardware keyboard and pointer
    for desktop interaction; the Android device and display must support the
    desired windowed/external-display behavior.
