@@ -10,12 +10,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.pocketdex.launcher.eco.RemoteWorkspaceActivity;
 import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
 
 public class SettingsActivity extends Activity {
@@ -59,6 +61,7 @@ public class SettingsActivity extends Activity {
         buildHeader();
         buildAppearance();
         buildEcosystem();
+        buildRemoteWorkspace();
         buildCapabilities();
         buildBehavior();
         buildHome();
@@ -333,6 +336,43 @@ public class SettingsActivity extends Activity {
         updateCapabilityDetails();
 
         actionButton(capabilityCard, "Refresh device details", this::updateCapabilityDetails);
+    }
+
+    private void buildRemoteWorkspace() {
+        section("Remote PC workspace");
+        LinearLayout remoteCard = card();
+        TextView explanation = subtitleText("Connect to your own Apache Guacamole server over HTTPS. "
+                + "RDP and VNC hosts are configured on that server; PocketDeX does not provide cloud hosting.");
+        explanation.setPadding(0, dp(10), 0, dp(8));
+        remoteCard.addView(explanation);
+
+        EditText endpoint = new EditText(this);
+        endpoint.setSingleLine(true);
+        endpoint.setTextColor(TEXT);
+        endpoint.setHintTextColor(DIM);
+        endpoint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        endpoint.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        endpoint.setHint("https://your-server/guacamole/");
+        endpoint.setText(getSharedPreferences(RemoteWorkspaceActivity.PREFS, MODE_PRIVATE)
+                .getString(RemoteWorkspaceActivity.KEY_GUACAMOLE_URL, ""));
+        remoteCard.addView(endpoint, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        actionButton(remoteCard, "Save and connect", () -> {
+            android.net.Uri normalized = RemoteWorkspaceActivity
+                    .normalizeEndpoint(endpoint.getText().toString());
+            if (normalized == null) {
+                android.widget.Toast.makeText(this,
+                        "Enter a valid HTTPS Guacamole server address",
+                        android.widget.Toast.LENGTH_LONG).show();
+                return;
+            }
+            getSharedPreferences(RemoteWorkspaceActivity.PREFS, MODE_PRIVATE)
+                    .edit().putString(RemoteWorkspaceActivity.KEY_GUACAMOLE_URL,
+                            normalized.toString()).apply();
+            startActivity(new Intent(this, RemoteWorkspaceActivity.class));
+        });
     }
 
     private void updateCapabilityDetails() {

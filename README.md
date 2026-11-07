@@ -23,6 +23,9 @@ without depending on whatever is installed on the phone:
   Ctrl+C, clear, kill and quick command buttons, plus your hardware keyboard.
 - **Calculator** — expression calculator with live result preview
   (`+ - * / % ( ) ^`).
+- **Remote PC** — connect to a user-managed Apache Guacamole HTTPS gateway for
+  remote RDP/VNC desktops. PocketDeX displays the remote session; the PC runs
+  on the configured remote host.
 
 Ecosystem apps appear in the Start menu tiles, default taskbar dock, desktop
 grid and the empty-desktop right-click menu. You can pin or unpin them like
@@ -74,6 +77,13 @@ Local build (requires a desktop Android SDK):
 ```bash
 ./gradlew assembleDebug
 ```
+
+## Remote PC
+
+Remote PC requires an existing Apache Guacamole server configured for RDP or
+VNC. Enter its HTTPS web address in PocketDeX Settings → **Remote PC workspace**.
+See [the remote workspace setup notes](docs/remote-workspace.md) for the
+connection model and security requirements.
 
 ## Known limitations
 

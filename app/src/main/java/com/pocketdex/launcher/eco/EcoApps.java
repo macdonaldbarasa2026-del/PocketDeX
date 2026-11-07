@@ -15,6 +15,7 @@ public final class EcoApps {
     public static final String EDITOR = "eco:editor";
     public static final String TERMINAL = "eco:terminal";
     public static final String CALCULATOR = "eco:calculator";
+    public static final String REMOTE_PC = "eco:remote_pc";
     public static final String SETTINGS = "eco:settings";
 
     private EcoApps() {
@@ -75,6 +76,8 @@ public final class EcoApps {
         list.add(new Entry(EDITOR, "Editor", R.drawable.ic_editor, EditorActivity.class));
         list.add(new Entry(TERMINAL, "Terminal", R.drawable.ic_terminal, TerminalActivity.class));
         list.add(new Entry(CALCULATOR, "Calculator", R.drawable.ic_calc, CalculatorActivity.class));
+        list.add(new Entry(REMOTE_PC, "Remote PC", R.drawable.ic_remote_pc,
+                RemoteWorkspaceActivity.class));
         list.add(new Entry(SETTINGS, "Settings", R.drawable.ic_settings, null));
         ENTRIES = list;
 
