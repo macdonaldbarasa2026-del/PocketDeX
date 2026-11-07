@@ -71,10 +71,11 @@ resources as local RAM or local GPU capacity.
    `DeviceCapabilityProfile` and `RuntimeProvider`; route Android launches
    through `AndroidAppRuntime` and allow providers to register by runtime id.
    Continue with lifecycle sessions before integrating a second backend.
-3. **Remote workspace prototype:** connect to a user-owned host over an
-   authenticated, encrypted protocol; stream a single desktop session and
-   support keyboard/mouse, resize and reconnect. Do not provision cloud compute
-   until provider, cost and credentials are explicitly chosen.
+3. **Remote workspace prototype:** the first client is implemented through a
+   user-managed HTTPS Apache Guacamole web application, with server-side RDP or
+   VNC bridging. Next add provider/session lifecycle, reconnect and latency
+   reporting. Do not provision cloud compute until provider, cost and
+   credentials are explicitly chosen.
 4. **Local compatibility research:** benchmark candidate Linux and Windows
    runtimes against a published device/app matrix. Ship only after licensing,
    security and per-device performance are understood.
@@ -93,8 +94,10 @@ supported ABIs, system memory state and connected presentation displays for
 runtime decisions and is visible in Settings as a refreshable device details
 card. This snapshot stays local; it does not claim to measure GPU performance
 or predict app compatibility. The registry can accept additional
-providers, but no Linux, Windows or remote provider exists yet. The next code
-milestone is runtime session lifecycle before connecting a second backend.
+providers. A separate Remote PC activity can open a user-managed Guacamole
+HTTPS gateway for RDP/VNC sessions, but direct Linux/Windows providers,
+native per-app remote windows and runtime session lifecycle are still future
+work.
 
 ## Platform references
 

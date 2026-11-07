@@ -18,10 +18,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.pocketdex.launcher.R;
 import com.pocketdex.launcher.Ui;
+
+import java.net.URI;
 
 /** Remote desktop viewer for a user-managed HTTPS Apache Guacamole server. */
 public final class RemoteWorkspaceActivity extends Activity {
@@ -152,13 +152,14 @@ public final class RemoteWorkspaceActivity extends Activity {
             return null;
         }
         try {
-            Uri input = Uri.parse(value.trim());
-            if (!"https".equalsIgnoreCase(input.getScheme())
-                    || input.getHost() == null || input.getHost().isEmpty()
-                    || input.getUserInfo() != null || input.getQuery() != null) {
+            URI parsed = new URI(value.trim());
+            if (!"https".equalsIgnoreCase(parsed.getScheme())
+                    || parsed.getHost() == null || parsed.getHost().isEmpty()
+                    || parsed.getUserInfo() != null || parsed.getQuery() != null
+                    || parsed.getPort() == 0 || parsed.getPort() > 65535) {
                 return null;
             }
-            String path = input.getPath();
+            String path = parsed.getRawPath();
             if (path == null || path.isEmpty()) {
                 path = "/";
             }
@@ -166,7 +167,7 @@ public final class RemoteWorkspaceActivity extends Activity {
                 path += "/";
             }
             Uri.Builder builder = new Uri.Builder().scheme("https").encodedAuthority(
-                    input.getEncodedAuthority()).encodedPath(path);
+                    parsed.getRawAuthority()).encodedPath(path);
             return builder.build();
         } catch (Exception e) {
             return null;
@@ -190,10 +191,6 @@ public final class RemoteWorkspaceActivity extends Activity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, dp(36));
         params.rightMargin = dp(6);
-        return buttonWithParams(button, params);
-    }
-
-    private TextView buttonWithParams(TextView button, LinearLayout.LayoutParams params) {
         button.setLayoutParams(params);
         return button;
     }
