@@ -489,6 +489,9 @@ public class SettingsActivity extends Activity {
                 ? "Unknown" : String.join(", ", profile.supportedAbis());
         String totalMemory = android.text.format.Formatter.formatFileSize(
                 this, profile.totalMemoryBytes());
+        String advertisedMemory = profile.advertisedMemoryBytes() > 0
+                ? android.text.format.Formatter.formatFileSize(
+                        this, profile.advertisedMemoryBytes()) : "not reported";
         String availableMemory = android.text.format.Formatter.formatFileSize(
                 this, profile.availableMemoryBytes());
         String desktopSetup = (profile.hasPhysicalKeyboardConnected()
@@ -503,8 +506,10 @@ public class SettingsActivity extends Activity {
                 .append("Desktop setup: ").append(desktopSetup).append("\n")
                 .append("Android API: ").append(profile.androidApi()).append("\n")
                 .append("Supported app ABIs: ").append(abis).append("\n")
-                .append("System RAM: ").append(totalMemory).append(" total; ")
-                .append(availableMemory).append(" currently available\n")
+                .append("Advertised device memory: ").append(advertisedMemory).append("\n")
+                .append("Kernel-accessible RAM: ").append(totalMemory).append("\n")
+                .append("Available to system: ").append(availableMemory)
+                .append(" (snapshot; includes reclaimable RAM)\n")
                 .append("External presentation displays: ")
                 .append(profile.presentationDisplayCount()).append("\n")
                 .append("Activities on secondary displays: ")

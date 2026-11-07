@@ -23,6 +23,15 @@ The example below follows the upstream Debian/XFCE pattern:
 6. Inside Debian, install a desktop: `apt update && apt install xfce4 dbus-x11`.
 7. Start it inside Debian: `DISPLAY=:1 dbus-launch --exit-with-session xfce4-session`.
 
+Termux:X11 also supports tagged X displays as separate Android windows; its
+documented example starts `termux-x11 :1 -tag main` and
+`termux-x11 :2 -tag second`. These are X-server windows managed by Termux:X11,
+not a PocketDeX feature or a guarantee that a given OEM will place either
+window on a particular monitor. Its README also warns that Android can give
+Termux less CPU time while the regular Termux:X11 app is in front. The optional
+shared-UID APK can avoid that scheduling penalty, but is compatible only with
+the GitHub-signed Termux app.
+
 This is a Linux userland sharing Android's kernel, CPU, memory, GPU access and
 thermal limits. PRoot is not a hardware virtual machine and does not add
 physical RAM or GPU capacity. Linux GUI support is through the X server; app

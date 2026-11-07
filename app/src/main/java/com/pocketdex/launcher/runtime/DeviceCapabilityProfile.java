@@ -18,6 +18,7 @@ public final class DeviceCapabilityProfile {
     private final String manufacturer;
     private final String model;
     private final List<String> supportedAbis;
+    private final long advertisedMemoryBytes;
     private final long totalMemoryBytes;
     private final long availableMemoryBytes;
     private final boolean lowMemory;
@@ -29,7 +30,8 @@ public final class DeviceCapabilityProfile {
     private final boolean pointerConnected;
 
     private DeviceCapabilityProfile(int androidApi, String manufacturer, String model,
-                                    List<String> supportedAbis, long totalMemoryBytes,
+                                    List<String> supportedAbis, long advertisedMemoryBytes,
+                                    long totalMemoryBytes,
                                     long availableMemoryBytes, boolean lowMemory,
                                     int presentationDisplayCount,
                                     List<String> externalDisplaySummaries,
@@ -42,6 +44,7 @@ public final class DeviceCapabilityProfile {
         this.model = model;
         this.supportedAbis = Collections.unmodifiableList(
                 new ArrayList<>(supportedAbis));
+        this.advertisedMemoryBytes = advertisedMemoryBytes;
         this.totalMemoryBytes = totalMemoryBytes;
         this.availableMemoryBytes = availableMemoryBytes;
         this.lowMemory = lowMemory;
@@ -59,6 +62,7 @@ public final class DeviceCapabilityProfile {
             throw new IllegalArgumentException("context must not be null");
         }
 
+        long advertisedMemory = 0L;
         long totalMemory = 0L;
         long availableMemory = 0L;
         boolean lowMemory = false;
@@ -67,6 +71,9 @@ public final class DeviceCapabilityProfile {
         if (activityManager != null) {
             ActivityManager.MemoryInfo memory = new ActivityManager.MemoryInfo();
             activityManager.getMemoryInfo(memory);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                advertisedMemory = memory.advertisedMem;
+            }
             totalMemory = memory.totalMem;
             availableMemory = memory.availMem;
             lowMemory = memory.lowMemory;
@@ -108,7 +115,7 @@ public final class DeviceCapabilityProfile {
                     || input.supportsSource(InputDevice.SOURCE_STYLUS);
         }
         return new DeviceCapabilityProfile(Build.VERSION.SDK_INT, Build.MANUFACTURER,
-                Build.MODEL, abis, totalMemory, availableMemory, lowMemory,
+                Build.MODEL, abis, advertisedMemory, totalMemory, availableMemory, lowMemory,
                 presentationDisplays, externalDisplaySummaries,
                 secondaryDisplayActivities,
                 freeformWindowManagement, physicalKeyboard, pointer);
@@ -158,6 +165,11 @@ public final class DeviceCapabilityProfile {
 
     public long totalMemoryBytes() {
         return totalMemoryBytes;
+    }
+
+    /** Retail-advertised device memory when Android 14+ reports it, otherwise zero. */
+    public long advertisedMemoryBytes() {
+        return advertisedMemoryBytes;
     }
 
     public long availableMemoryBytes() {

@@ -115,7 +115,8 @@ Android launch path now goes through `AppDescriptor`, `RuntimeProvider`,
 ready, missing, disabled or invalid. `GuacamoleRuntime` checks whether the
 remote workspace has a valid HTTPS gateway configured before launching the
 remote activity. A capability snapshot records Android API, supported ABIs,
-system memory state and eligible external presentation displays for runtime decisions
+Android's advertised and kernel-accessible memory figures, the system-wide
+available-memory snapshot and eligible external presentation displays for runtime decisions
 and is visible in Settings as a refreshable device details card. The card also
 reports attached non-virtual keyboard and pointer devices so users can identify
 missing desktop peripherals. For eligible external presentation displays, it
@@ -195,6 +196,7 @@ the receiving app; each target must accept and request the temporary grant.
 - [Android display-specific window metrics](https://developer.android.com/develop/adaptive-apps/guides/support-multi-window-mode#window-metrics)
 - [Android large-screen keyboard and pointer input](https://developer.android.com/develop/ui/views/touch-and-input/input-compatibility-on-large-screens)
 - [Android InputDevice API](https://developer.android.com/reference/android/view/InputDevice)
+- [Android ActivityManager.MemoryInfo](https://developer.android.com/reference/android/app/ActivityManager.MemoryInfo)
 - [Android adaptive desktop app quality guidelines](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality/experiences/desktop)
 - [Android multi-window drag-and-drop](https://developer.android.com/develop/ui/views/touch-and-input/drag-drop/multi-window)
 - [Android global URI drag flags](https://developer.android.com/reference/android/view/View#DRAG_FLAG_GLOBAL_URI_READ)
