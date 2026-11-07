@@ -121,6 +121,12 @@ advertisement. `ActivityOptions.setLaunchDisplayId` may still be rejected for a
 specific display or activity by platform policy; report successful dispatch
 separately from the feature flag. PocketDeX now tells the user when an app
 launch falls back to the phone after an external-display launch is rejected.
+For launch-bound calculations, API 30+ uses a window context on the target
+display and its maximum window metrics; older Android versions fall back to
+`Display.getRealMetrics()`. Density comes from the target display's
+configuration when available. This follows Android's connected-display
+guidance and keeps physical-pixel bounds aligned with the display being
+targeted.
 
 ## AI and remote compute
 

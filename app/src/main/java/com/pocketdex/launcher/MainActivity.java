@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
@@ -24,6 +23,7 @@ import android.view.WindowInsetsController;
 import android.widget.Toast;
 
 import com.pocketdex.launcher.runtime.DisplayUtils;
+import com.pocketdex.launcher.runtime.DisplayWindowMetrics;
 
 public class MainActivity extends Activity implements DesktopView.Host {
 
@@ -238,8 +238,10 @@ public class MainActivity extends Activity implements DesktopView.Host {
                 if (getPackageManager().hasSystemFeature(
                         PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT)) {
                     Rect bounds = nextWindowBounds(displayId);
-                    options.setLaunchBounds(bounds);
-                    hasOptions = true;
+                    if (bounds != null) {
+                        options.setLaunchBounds(bounds);
+                        hasOptions = true;
+                    }
                 } else {
                     Toast.makeText(this,
                             "Android does not advertise freeform windows; opening normally.",
@@ -274,20 +276,12 @@ public class MainActivity extends Activity implements DesktopView.Host {
     }
 
     private Rect nextWindowBounds(int displayId) {
-        Display display = displayId == Display.DEFAULT_DISPLAY
-                ? getWindowManager().getDefaultDisplay()
-                : findDisplayById(displayId);
-        DisplayMetrics metrics = new DisplayMetrics();
-        if (display != null) {
-            display.getRealMetrics(metrics);
-        } else {
-            metrics.setTo(getResources().getDisplayMetrics());
-        }
+        Display display = findDisplayById(displayId);
+        DisplayWindowMetrics metrics = DisplayWindowMetrics.forDisplay(this, display);
         if (metrics.widthPixels <= 0 || metrics.heightPixels <= 0) {
-            metrics.setTo(getResources().getDisplayMetrics());
+            return null;
         }
-        float density = metrics.density > 0f
-                ? metrics.density : getResources().getDisplayMetrics().density;
+        float density = metrics.density;
         int minWidth = Math.round(320f * density);
         int minHeight = Math.round(240f * density);
         int width = Math.min(metrics.widthPixels,

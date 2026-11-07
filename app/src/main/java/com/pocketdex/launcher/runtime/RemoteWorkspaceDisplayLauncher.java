@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
-import android.util.DisplayMetrics;
 import android.view.Display;
 
 /** Targets a connected, eligible external display when the user opts in. */
@@ -40,7 +39,7 @@ public final class RemoteWorkspaceDisplayLauncher {
                         .setLaunchDisplayId(display.getDisplayId());
                 if (context.getPackageManager().hasSystemFeature(
                         PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT)) {
-                    Rect bounds = nearFullScreenBounds(display);
+                    Rect bounds = nearFullScreenBounds(context, display);
                     if (bounds != null) {
                         options.setLaunchBounds(bounds);
                     }
@@ -54,9 +53,8 @@ public final class RemoteWorkspaceDisplayLauncher {
         return false;
     }
 
-    private static Rect nearFullScreenBounds(Display display) {
-        DisplayMetrics metrics = new DisplayMetrics();
-        display.getRealMetrics(metrics);
+    private static Rect nearFullScreenBounds(Context context, Display display) {
+        DisplayWindowMetrics metrics = DisplayWindowMetrics.forDisplay(context, display);
         if (metrics.widthPixels <= 0 || metrics.heightPixels <= 0) {
             return null;
         }

@@ -233,7 +233,7 @@ the receiving app; each target must accept and request the temporary grant.
 - [Android Presentation behavior](https://developer.android.com/reference/android/app/Presentation)
 - [Android Display.isInternal API](https://developer.android.com/reference/android/view/Display#isInternal())
 - [Android Display.Mode API](https://developer.android.com/reference/android/view/Display.Mode)
-- [Android display-specific window metrics](https://developer.android.com/develop/adaptive-apps/guides/support-multi-window-mode#window-metrics)
+- [Android current and display-specific maximum window metrics](https://developer.android.com/develop/adaptive-apps/guides/support-multi-window-mode#window-metrics)
 - [Android large-screen keyboard and pointer input](https://developer.android.com/develop/ui/views/touch-and-input/input-compatibility-on-large-screens)
 - [Android InputDevice API](https://developer.android.com/reference/android/view/InputDevice)
 - [Android ActivityManager.MemoryInfo](https://developer.android.com/reference/android/app/ActivityManager.MemoryInfo)
