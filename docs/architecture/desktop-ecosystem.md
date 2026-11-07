@@ -175,6 +175,9 @@ URI schemes and non-text MIME types, and enforces the existing 3 MB editor
 limit. The text is inserted at the current selection and is not saved
 automatically. See [Android desktop drag-and-drop guidance](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality/experiences/desktop)
 and [cross-app URI drag permissions](https://developer.android.com/develop/ui/views/touch-and-input/drag-drop/multi-window).
+The built-in Files list can also start a global, read-only drag for a document
+URI from the user-selected SAF tree. It does not request persistable access for
+the receiving app; each target must accept and request the temporary grant.
 
 ## Platform references
 
@@ -194,6 +197,7 @@ and [cross-app URI drag permissions](https://developer.android.com/develop/ui/vi
 - [Android InputDevice API](https://developer.android.com/reference/android/view/InputDevice)
 - [Android adaptive desktop app quality guidelines](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality/experiences/desktop)
 - [Android multi-window drag-and-drop](https://developer.android.com/develop/ui/views/touch-and-input/drag-drop/multi-window)
+- [Android global URI drag flags](https://developer.android.com/reference/android/view/View#DRAG_FLAG_GLOBAL_URI_READ)
 - [Android secondary-display activity feature](https://developer.android.com/reference/android/content/pm/PackageManager#FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)
 - [Android ABI guidance](https://developer.android.com/ndk/guides/abis)
 - [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)

@@ -2,6 +2,7 @@ package com.pocketdex.launcher.eco;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -285,6 +286,26 @@ public class FilesActivity extends Activity {
         return DocumentsContract.buildDocumentUriUsingTree(treeUri, doc.docId);
     }
 
+    private boolean startFileDrag(Doc doc, View source) {
+        if (doc == null || doc.isDir() || treeUri == null) {
+            return false;
+        }
+        Uri uri = documentUri(doc);
+        String mimeType = doc.mime == null || doc.mime.trim().isEmpty()
+                ? "application/octet-stream" : doc.mime;
+        ClipData clip = new ClipData(doc.name,
+                new String[]{mimeType}, new ClipData.Item(uri));
+        int flags = View.DRAG_FLAG_GLOBAL | View.DRAG_FLAG_GLOBAL_URI_READ;
+        try {
+            return source.startDragAndDrop(clip,
+                    new View.DragShadowBuilder(source), null, flags);
+        } catch (Exception e) {
+            Toast.makeText(this, "Could not share this file with the drop target.",
+                    Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
+
     private void showFileMenu(Doc doc, View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
         menu.getMenu().add(0, 1, 0, "Open in Editor");
@@ -478,6 +499,10 @@ public class FilesActivity extends Activity {
                     ? "  ·  " + new SimpleDateFormat("d MMM yy", Locale.US)
                     .format(new Date(doc.modified))
                     : ""));
+            row.setLongClickable(!doc.isDir());
+            row.setTooltipText(doc.isDir() ? doc.name : doc.name + " — hold and drag to share");
+            row.setOnLongClickListener(doc.isDir()
+                    ? null : view -> startFileDrag(doc, view));
             return row;
         }
 

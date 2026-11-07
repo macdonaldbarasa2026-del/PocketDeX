@@ -16,7 +16,8 @@ without depending on whatever is installed on the phone:
 - **Files** — storage file manager over Android's Storage Access Framework.
   Pick a storage root once, then browse folders, open text files in the
   built-in Editor, open other files with any installed app, create folders
-  and files, rename and delete.
+  and files, rename and delete. Hold and drag a file to share it with another
+  app using a temporary read-only URI grant.
 - **Editor** — plain-text editor with load/save over SAF, "Save As",
   word-wrap toggle, live line/column status, monospace typography and hardware
   keyboard shortcuts (`Ctrl+S` to save, `Ctrl+Shift+S` to save as). Drop one
