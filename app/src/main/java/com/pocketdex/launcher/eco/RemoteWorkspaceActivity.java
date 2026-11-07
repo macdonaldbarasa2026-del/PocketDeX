@@ -3,6 +3,8 @@ package com.pocketdex.launcher.eco;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -450,7 +452,7 @@ public final class RemoteWorkspaceActivity extends Activity {
             if (candidates != null && candidates.length > 0) {
                 java.util.ArrayList<Uri> accepted = new java.util.ArrayList<>();
                 for (Uri candidate : candidates) {
-                    if (candidate != null && "content".equalsIgnoreCase(candidate.getScheme())) {
+                    if (isSelectableUploadUri(candidate, data)) {
                         accepted.add(candidate);
                     }
                 }
@@ -463,6 +465,23 @@ public final class RemoteWorkspaceActivity extends Activity {
         if (results == null) {
             status.setText("File selection cancelled or returned an unsupported location.");
         }
+    }
+
+    private boolean isSelectableUploadUri(Uri uri, Intent result) {
+        if (uri == null || result == null
+                || !"content".equalsIgnoreCase(uri.getScheme())
+                || uri.getAuthority() == null) {
+            return false;
+        }
+        boolean granted = (result.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0
+                || checkUriPermission(uri, android.os.Process.myPid(),
+                android.os.Process.myUid(), Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!granted) {
+            return false;
+        }
+        ProviderInfo provider = getPackageManager().resolveContentProvider(uri.getAuthority(), 0);
+        return provider != null && !getPackageName().equals(provider.packageName);
     }
 
     private int effectivePort(Uri uri) {

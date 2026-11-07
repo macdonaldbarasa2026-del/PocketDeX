@@ -47,14 +47,15 @@ does not receive lifecycle callbacks from those other applications. Guacamole
 gateway readiness also does not prove an RDP/VNC connection is active.
 
 When the gateway requests an upload, PocketDeX opens Android's system file
-picker. Only user-selected `content://` files are returned to the page; PocketDeX
-does not grant broad storage access. Downloads from the configured HTTPS server
+picker. PocketDeX returns only `content://` URIs with a read grant from a
+registered provider outside its own package; it does not grant broad storage
+access. Downloads from the configured HTTPS server
 prompt for a destination through Android's system save picker. Redirects are
 limited to the configured server origin, and the session cookie is not sent to a
 different host. The server and Guacamole connection must have file transfer
 enabled for these controls to work.
 The picker uses WebView's documented file chooser callback and validates the
-returned URI scheme before handing the selected file to the page. See the
+returned provider and read grant before handing the selected file to the page. See the
 [Android WebView file chooser API](https://developer.android.com/reference/android/webkit/WebChromeClient#onShowFileChooser(android.webkit.WebView,android.webkit.ValueCallback,android.webkit.WebChromeClient.FileChooserParams))
 and [Guacamole file transfer configuration](https://guacamole.apache.org/doc/gug/configuring-guacamole.html#rdp).
 
