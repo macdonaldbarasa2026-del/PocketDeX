@@ -8,6 +8,26 @@ menu and a taskbar, and it can extend that desktop to an external monitor.
 > It runs on top of Android and uses the multi-window / multi-display features
 > that your device exposes.
 
+## PocketDeX ecosystem (v2.0)
+
+The launcher ships with its own built-in desktop apps, so the experience works
+without depending on whatever is installed on the phone:
+
+- **Files** — storage file manager over Android's Storage Access Framework.
+  Pick a storage root once, then browse folders, open text files in the
+  built-in Editor, open other files with any installed app, create folders
+  and files, rename and delete.
+- **Editor** — plain-text editor with load/save over SAF, "Save As",
+  word-wrap toggle, line/column status and monospace typography.
+- **Terminal** — an embedded `/system/bin/sh` session inside the launcher with
+  Ctrl+C, clear, kill and quick command buttons, plus your hardware keyboard.
+- **Calculator** — expression calculator with live result preview
+  (`+ - * / % ( ) ^`).
+
+Ecosystem apps appear in the Start menu tiles, default taskbar dock, desktop
+grid and the empty-desktop right-click menu. You can pin or unpin them like
+any other app, and toggle the desktop ecosystem section in Settings.
+
 ## Features
 
 - **PC-style desktop** with your wallpaper, an app icon grid, labels and a

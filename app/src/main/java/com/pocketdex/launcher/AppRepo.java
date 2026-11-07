@@ -28,7 +28,7 @@ public final class AppRepo {
     private AppRepo() {
     }
 
-    public static final class AppEntry {
+    public static final class AppEntry implements com.pocketdex.launcher.EcoItem {
         public final String label;
         public final String packageName;
         public final ComponentName component;
@@ -44,6 +44,12 @@ public final class AppRepo {
             return component.flattenToString();
         }
 
+        @Override
+        public String label() {
+            return label;
+        }
+
+        @Override
         public Drawable icon(Context c) {
             if (icon == null) {
                 try {
@@ -57,6 +63,18 @@ public final class AppRepo {
                 }
             }
             return icon;
+        }
+
+        @Override
+        public void open(Context c) {
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.setComponent(component);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            try {
+                c.startActivity(intent);
+            } catch (Exception ignored) {
+            }
         }
     }
 

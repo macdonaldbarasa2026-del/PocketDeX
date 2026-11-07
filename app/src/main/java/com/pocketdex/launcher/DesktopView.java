@@ -45,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import com.pocketdex.launcher.eco.EcoApps;
+
 import java.util.Locale;
 
 public class DesktopView extends FrameLayout {
@@ -248,29 +250,31 @@ public class DesktopView extends FrameLayout {
         int available = metrics().widthPixels - dp(32);
         int cell = Math.max(dp(64), available / columns);
 
-        List<AppRepo.AppEntry> apps = AppRepo.apps(ctx);
         LinkedHashSet<String> pins = AppRepo.pinned(ctx);
-        List<AppRepo.AppEntry> shown = new ArrayList<>();
+        List<EcoItem> shown = new ArrayList<>();
 
         if (!pins.isEmpty()) {
             for (String key : pins) {
-                AppRepo.AppEntry entry = AppRepo.find(ctx, key);
-                if (entry != null && !shown.contains(entry)) {
+                EcoItem entry = findItem(key);
+                if (entry != null && !containsItem(shown, entry)) {
                     shown.add(entry);
                 }
             }
-            if (shown.isEmpty()) {
-                shown.addAll(apps);
+        }
+        if (shown.isEmpty()) {
+            if (Prefs.showEcoOnDesktop(ctx)) {
+                for (EcoApps.Entry entry : EcoApps.ENTRIES) {
+                    shown.add(entry);
+                }
             }
-        } else {
-            shown.addAll(apps);
+            shown.addAll(AppRepo.apps(ctx));
         }
 
         desktopGrid.removeAllViews();
         int iconSize = Math.round(Prefs.iconSize(ctx));
         boolean labels = Prefs.showLabels(ctx);
-        for (AppRepo.AppEntry app : shown) {
-            View icon = buildIcon(app, iconSize, labels, cell);
+        for (EcoItem item : shown) {
+            View icon = buildIcon(item, iconSize, labels, cell);
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
             params.width = cell;
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -278,7 +282,7 @@ public class DesktopView extends FrameLayout {
         }
     }
 
-    private View buildIcon(AppRepo.AppEntry app, int iconSizeDp, boolean showLabel,
+    private View buildIcon(EcoItem item, int iconSizeDp, boolean showLabel,
                            int cellWidth) {
         LinearLayout box = new LinearLayout(ctx);
         box.setOrientation(LinearLayout.VERTICAL);
@@ -286,14 +290,14 @@ public class DesktopView extends FrameLayout {
         box.setPadding(dp(4), dp(7), dp(4), dp(7));
         box.setFocusable(true);
         box.setClickable(true);
-        box.setTag(app);
+        box.setTag(item);
 
         Drawable normal = Ui.rounded(ctx, Color.TRANSPARENT, 12);
         Drawable background = Ui.ripple(ctx, normal, 0x33FFFFFF);
         box.setBackground(background);
 
         ImageView image = new ImageView(ctx);
-        Drawable icon = app.icon(ctx);
+        Drawable icon = item.icon(ctx);
         if (icon != null) {
             image.setImageDrawable(icon);
         }
@@ -306,7 +310,7 @@ public class DesktopView extends FrameLayout {
 
         if (showLabel) {
             TextView label = new TextView(ctx);
-            label.setText(app.label);
+            label.setText(item.label());
             label.setTextColor(COLOR_TEXT);
             label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
             label.setGravity(Gravity.CENTER);
@@ -320,16 +324,16 @@ public class DesktopView extends FrameLayout {
             box.addView(label, labelParams);
         }
 
-        box.setTooltipText(app.label);
-        box.setOnClickListener(v -> handleIconClick(app, v));
+        box.setTooltipText(item.label());
+        box.setOnClickListener(v -> handleIconClick(item, v));
         box.setOnLongClickListener(v -> {
-            showAppMenu(app, v);
+            showAppMenu(item, v);
             return true;
         });
         box.setOnGenericMotionListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_BUTTON_PRESS
                     && (event.getButtonState() & MotionEvent.BUTTON_SECONDARY) != 0) {
-                showAppMenu(app, v);
+                showAppMenu(item, v);
                 return true;
             }
             return false;
@@ -345,16 +349,16 @@ public class DesktopView extends FrameLayout {
         return box;
     }
 
-    private void handleIconClick(AppRepo.AppEntry app, View view) {
+    private void handleIconClick(EcoItem item, View view) {
         if (!Prefs.doubleClick(ctx)) {
-            launchFromUi(app);
+            launchFromUi(item);
             return;
         }
         long now = SystemClock.uptimeMillis();
         if (lastClickedView == view && now - lastClickTime <= 420L) {
             lastClickedView = null;
             lastClickTime = 0L;
-            launchFromUi(app);
+            launchFromUi(item);
             return;
         }
         lastClickedView = view;
@@ -507,15 +511,8 @@ public class DesktopView extends FrameLayout {
             if (ordered.size() >= maxItems) {
                 break;
             }
-            if (AppRepo.find(ctx, key) != null) {
+            if (findItem(key) != null) {
                 ordered.add(key);
-            }
-        }
-
-        if (ordered.isEmpty()) {
-            List<AppRepo.AppEntry> apps = AppRepo.apps(ctx);
-            for (int i = 0; i < apps.size() && ordered.size() < Math.min(maxItems, 6); i++) {
-                ordered.add(apps.get(i).key());
             }
         }
 
@@ -523,26 +520,44 @@ public class DesktopView extends FrameLayout {
             if (ordered.size() >= maxItems) {
                 break;
             }
-            if (!ordered.contains(key) && AppRepo.find(ctx, key) != null) {
+            if (!ordered.contains(key) && findItem(key) != null) {
                 ordered.add(key);
             }
         }
 
+        if (ordered.isEmpty()) {
+            for (String key : EcoApps.DEFAULT_DOCK_KEYS) {
+                if (ordered.size() >= maxItems) {
+                    break;
+                }
+                ordered.add(key);
+            }
+            List<AppRepo.AppEntry> apps = AppRepo.apps(ctx);
+            for (AppRepo.AppEntry app : apps) {
+                if (ordered.size() >= maxItems) {
+                    break;
+                }
+                if (!ordered.contains(app.key())) {
+                    ordered.add(app.key());
+                }
+            }
+        }
+
         for (String key : ordered) {
-            AppRepo.AppEntry app = AppRepo.find(ctx, key);
-            if (app == null) {
+            EcoItem item = findItem(key);
+            if (item == null) {
                 continue;
             }
-            View icon = buildDockIcon(app);
+            View icon = buildDockIcon(item);
             dockApps.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(40)));
         }
     }
 
-    private View buildDockIcon(AppRepo.AppEntry app) {
+    private View buildDockIcon(EcoItem item) {
         LinearLayout box = new LinearLayout(ctx);
         box.setGravity(Gravity.CENTER);
         box.setPadding(dp(5), dp(4), dp(5), dp(4));
-        box.setTag(app);
+        box.setTag(item);
         box.setClickable(true);
         box.setFocusable(true);
         Drawable background = Ui.ripple(ctx,
@@ -550,7 +565,7 @@ public class DesktopView extends FrameLayout {
         box.setBackground(background);
 
         ImageView image = new ImageView(ctx);
-        Drawable icon = app.icon(ctx);
+        Drawable icon = item.icon(ctx);
         if (icon != null) {
             image.setImageDrawable(icon);
         }
@@ -559,16 +574,16 @@ public class DesktopView extends FrameLayout {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
 
-        box.setTooltipText(app.label);
-        box.setOnClickListener(v -> launchFromUi(app));
+        box.setTooltipText(item.label());
+        box.setOnClickListener(v -> launchFromUi(item));
         box.setOnLongClickListener(v -> {
-            showAppMenu(app, v);
+            showAppMenu(item, v);
             return true;
         });
         box.setOnGenericMotionListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_BUTTON_PRESS
                     && (event.getButtonState() & MotionEvent.BUTTON_SECONDARY) != 0) {
-                showAppMenu(app, v);
+                showAppMenu(item, v);
                 return true;
             }
             return false;
@@ -618,6 +633,13 @@ public class DesktopView extends FrameLayout {
         startGridWidth = panelWidth - dp(20);
 
         startPanel.addView(buildStartHeader());
+
+        LinearLayout ecoRow = buildEcoRow();
+        LinearLayout.LayoutParams ecoParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        ecoParams.topMargin = dp(6);
+        startPanel.addView(ecoRow, ecoParams);
 
         search = new EditText(ctx);
         search.setSingleLine(true);
@@ -686,6 +708,57 @@ public class DesktopView extends FrameLayout {
         startPanel.addView(buildStartFooter());
 
         rebuildStartGrid("");
+    }
+
+    private LinearLayout buildEcoRow() {
+        LinearLayout row = new LinearLayout(ctx);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        int count = Math.min(EcoApps.ENTRIES.size(), 4);
+        for (int index = 0; index < count; index++) {
+            final EcoApps.Entry entry = EcoApps.ENTRIES.get(index);
+            LinearLayout tile = new LinearLayout(ctx);
+            tile.setOrientation(LinearLayout.VERTICAL);
+            tile.setGravity(Gravity.CENTER);
+            tile.setPadding(dp(6), dp(10), dp(6), dp(10));
+            tile.setFocusable(true);
+            tile.setClickable(true);
+
+            Drawable background = Ui.ripple(ctx,
+                    Ui.rounded(ctx, 0xFF232838, 12), 0x44FFFFFF);
+            tile.setBackground(background);
+
+            ImageView icon = new ImageView(ctx);
+            Drawable drawable = entry.icon(ctx);
+            if (drawable != null) {
+                icon.setImageDrawable(drawable);
+            }
+            icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            LinearLayout.LayoutParams iconParams =
+                    new LinearLayout.LayoutParams(dp(26), dp(26));
+            iconParams.gravity = Gravity.CENTER_HORIZONTAL;
+            tile.addView(icon, iconParams);
+
+            TextView label = new TextView(ctx);
+            label.setText(entry.label());
+            label.setTextColor(COLOR_TEXT);
+            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+            label.setGravity(Gravity.CENTER);
+            label.setPadding(0, dp(4), 0, 0);
+            tile.addView(label, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            tile.setTooltipText(entry.label());
+            tile.setOnClickListener(v -> launchFromUi(entry));
+            tile.setOnLongClickListener(v -> {
+                AppRepo.togglePinned(ctx, entry.key());
+                refresh();
+                return true;
+            });
+            row.addView(tile, new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        }
+        return row;
     }
 
     private View buildStartHeader() {
@@ -779,13 +852,13 @@ public class DesktopView extends FrameLayout {
             return;
         }
         startGrid.removeAllViews();
-        List<AppRepo.AppEntry> matches = filteredApps(query);
+        List<EcoItem> matches = filteredApps(query);
         int columns = Math.max(3, Math.min(8, startGridWidth / Math.max(1, dp(84))));
         startGrid.setColumnCount(columns);
         int cell = Math.max(dp(64), startGridWidth / columns);
 
-        for (AppRepo.AppEntry app : matches) {
-            View icon = buildIcon(app, 38, true, cell);
+        for (EcoItem item : matches) {
+            View icon = buildIcon(item, 38, true, cell);
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
             params.width = cell;
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -796,9 +869,15 @@ public class DesktopView extends FrameLayout {
         }
     }
 
-    private List<AppRepo.AppEntry> filteredApps(String query) {
-        List<AppRepo.AppEntry> result = new ArrayList<>();
+    private List<EcoItem> filteredApps(String query) {
+        List<EcoItem> result = new ArrayList<>();
         String needle = query == null ? "" : query.trim().toLowerCase(Locale.getDefault());
+        for (EcoApps.Entry entry : EcoApps.ENTRIES) {
+            if (needle.isEmpty()
+                    || entry.name.toLowerCase(Locale.getDefault()).contains(needle)) {
+                result.add(entry);
+            }
+        }
         for (AppRepo.AppEntry app : AppRepo.apps(ctx)) {
             if (needle.isEmpty()
                     || app.label.toLowerCase(Locale.getDefault()).contains(needle)
@@ -852,14 +931,15 @@ public class DesktopView extends FrameLayout {
         defaultHint.setVisibility(show ? VISIBLE : GONE);
     }
 
-    private void showAppMenu(AppRepo.AppEntry app, View anchor) {
+    private void showAppMenu(EcoItem target, View anchor) {
         PopupMenu menu = new PopupMenu(ctx, anchor);
         menu.getMenu().add(0, 1, 0, str(R.string.open));
         menu.getMenu().add(0, 2, 1, str(R.string.open_window));
         if (host.hasExternalDisplay()) {
             menu.getMenu().add(0, 3, 2, str(R.string.open_external));
         }
-        boolean pinned = AppRepo.isPinned(ctx, app.key());
+        boolean isApp = target instanceof AppRepo.AppEntry;
+        boolean pinned = AppRepo.isPinned(ctx, target.key());
         menu.getMenu().add(0, 4, 3,
                 str(pinned ? R.string.unpin_desktop : R.string.pin_desktop));
         menu.getMenu().add(0, 5, 4, str(R.string.app_info));
@@ -868,24 +948,24 @@ public class DesktopView extends FrameLayout {
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1:
-                    launchFromUi(app);
+                    launchFromUi(target);
                     return true;
                 case 2:
-                    launchWindowed(app);
+                    launchWindowed(target);
                     return true;
                 case 3:
                     closeStart();
-                    host.launchAppOnExternal(app);
+                    host.launchAppOnExternal((AppRepo.AppEntry) target);
                     return true;
                 case 4:
-                    AppRepo.togglePinned(ctx, app.key());
+                    AppRepo.togglePinned(ctx, target.key());
                     refresh();
                     return true;
                 case 5:
-                    host.openAppInfo(app);
+                    host.openAppInfo((AppRepo.AppEntry) target);
                     return true;
                 case 6:
-                    host.uninstallApp(app);
+                    host.uninstallApp((AppRepo.AppEntry) target);
                     return true;
                 default:
                     return false;
@@ -899,9 +979,11 @@ public class DesktopView extends FrameLayout {
         PopupMenu menu = new PopupMenu(ctx, anchor);
         menu.getMenu().add(0, 1, 0, str(R.string.start));
         menu.getMenu().add(0, 2, 1, str(R.string.reload_apps));
-        menu.getMenu().add(0, 3, 2, str(R.string.wallpaper));
-        menu.getMenu().add(0, 4, 3, str(R.string.default_home));
-        menu.getMenu().add(0, 5, 4, str(R.string.settings_title));
+        menu.getMenu().add(0, 3, 2, str(R.string.files_title));
+        menu.getMenu().add(0, 4, 3, str(R.string.terminal_title));
+        menu.getMenu().add(0, 5, 4, str(R.string.wallpaper));
+        menu.getMenu().add(0, 6, 5, str(R.string.default_home));
+        menu.getMenu().add(0, 7, 6, str(R.string.settings_title));
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1:
@@ -911,12 +993,18 @@ public class DesktopView extends FrameLayout {
                     reloadApps();
                     return true;
                 case 3:
-                    host.openWallpaper();
+                    EcoApps.byId(EcoApps.FILES).open(host.hostContext());
                     return true;
                 case 4:
-                    host.openHomeSettings();
+                    EcoApps.byId(EcoApps.TERMINAL).open(host.hostContext());
                     return true;
                 case 5:
+                    host.openWallpaper();
+                    return true;
+                case 6:
+                    host.openHomeSettings();
+                    return true;
+                case 7:
                     host.openSettings();
                     return true;
                 default:
@@ -926,16 +1014,23 @@ public class DesktopView extends FrameLayout {
         menu.show();
     }
 
-    private void launchFromUi(AppRepo.AppEntry app) {
+    private void launchFromUi(EcoItem item) {
         recentIndex = -1;
         closeStart();
-        host.launchApp(app, false);
+        if (item instanceof EcoApps.Entry) {
+            AppRepo.addRecent(ctx, item.key());
+            item.open(host.hostContext());
+        } else if (item instanceof AppRepo.AppEntry) {
+            host.launchApp((AppRepo.AppEntry) item, false);
+        }
     }
 
-    private void launchWindowed(AppRepo.AppEntry app) {
+    private void launchWindowed(EcoItem item) {
         recentIndex = -1;
         closeStart();
-        host.launchApp(app, true);
+        if (item instanceof AppRepo.AppEntry) {
+            host.launchApp((AppRepo.AppEntry) item, true);
+        }
     }
 
     public void onAppLaunched(AppRepo.AppEntry app) {
@@ -1188,7 +1283,7 @@ public class DesktopView extends FrameLayout {
                 || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
             if (startOpen) {
-                List<AppRepo.AppEntry> matches = filteredApps(
+                List<EcoItem> matches = filteredApps(
                         search == null ? "" : search.getText().toString());
                 if (!matches.isEmpty()) {
                     launchFromUi(matches.get(0));
@@ -1197,8 +1292,8 @@ public class DesktopView extends FrameLayout {
                 return false;
             }
             View focus = findFocus();
-            if (focus != null && focus.getTag() instanceof AppRepo.AppEntry) {
-                launchFromUi((AppRepo.AppEntry) focus.getTag());
+            if (focus != null && focus.getTag() instanceof EcoItem) {
+                launchFromUi((EcoItem) focus.getTag());
                 return true;
             }
         }
@@ -1234,9 +1329,9 @@ public class DesktopView extends FrameLayout {
         } else {
             recentIndex = (recentIndex + 1) % recent.size();
         }
-        AppRepo.AppEntry app = AppRepo.find(ctx, recent.get(recentIndex));
-        if (app != null) {
-            host.launchApp(app, false);
+        EcoItem item = findItem(recent.get(recentIndex));
+        if (item != null) {
+            launchFromUi(item);
         }
     }
 
@@ -1252,6 +1347,26 @@ public class DesktopView extends FrameLayout {
             return true;
         }
         return super.onGenericMotionEvent(event);
+    }
+
+    private EcoItem findItem(String key) {
+        if (key == null) {
+            return null;
+        }
+        EcoApps.Entry entry = EcoApps.byId(key);
+        if (entry != null) {
+            return entry;
+        }
+        return AppRepo.find(ctx, key);
+    }
+
+    private boolean containsItem(List<EcoItem> list, EcoItem item) {
+        for (EcoItem candidate : list) {
+            if (candidate.key().equals(item.key())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private LayoutParams match() {

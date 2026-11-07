@@ -54,6 +54,10 @@ public final class Prefs {
         return get(c).getBoolean("external_display", true);
     }
 
+    public static boolean showEcoOnDesktop(Context c) {
+        return get(c).getBoolean("eco_desktop", true);
+    }
+
     public static boolean fullscreen(Context c) {
         return get(c).getBoolean("fullscreen", true);
     }

@@ -21,6 +21,11 @@
     <string name="external_unsupported">No external display detected.</string>
     <string name="no_apps">No apps found</string>
     <string name="recent_empty">No recent apps yet</string>
+    <string name="files_title">Files</string>
+    <string name="editor_title">Editor</string>
+    <string name="terminal_title">Terminal</string>
+    <string name="calculator_title">Calculator</string>
+    <string name="ecosystem">Ecosystem</string>
     <string name="about">About</string>
     <string name="about_text">PocketDeX is a PC-style desktop launcher for Android. Windowed apps and external-display desktop depend on device multi-window support. Press Home and choose PocketDeX as your launcher to use it.</string>
     <string name="shortcuts_title">Keyboard &amp; mouse</string>

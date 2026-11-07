@@ -42,6 +42,38 @@
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
             android:theme="@style/Theme.PocketDeX" />
 
+        <activity
+            android:name=".eco.FilesActivity"
+            android:exported="false"
+            android:label="@string/files_title"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
+            android:theme="@style/Theme.PocketDeX" />
+
+        <activity
+            android:name=".eco.EditorActivity"
+            android:exported="false"
+            android:label="@string/editor_title"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
+            android:theme="@style/Theme.PocketDeX" />
+
+        <activity
+            android:name=".eco.TerminalActivity"
+            android:exported="false"
+            android:label="@string/terminal_title"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
+            android:theme="@style/Theme.PocketDeX" />
+
+        <activity
+            android:name=".eco.CalculatorActivity"
+            android:exported="false"
+            android:label="@string/calculator_title"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
+            android:theme="@style/Theme.PocketDeX" />
+
         <receiver
             android:name=".PackageChangeReceiver"
             android:exported="false">

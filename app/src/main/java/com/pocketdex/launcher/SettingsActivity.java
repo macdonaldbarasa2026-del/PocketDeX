@@ -55,6 +55,7 @@ public class SettingsActivity extends Activity {
 
         buildHeader();
         buildAppearance();
+        buildEcosystem();
         buildBehavior();
         buildHome();
         buildAbout();
@@ -290,6 +291,36 @@ public class SettingsActivity extends Activity {
                 "Show a second desktop on HDMI or USB-C monitors",
                 Prefs.externalDisplay(this),
                 checked -> Prefs.setBoolean(this, "external_display", checked));
+
+        switchRow(card, "Ecosystem on desktop",
+                "Pin built-in PocketDeX apps on the desktop grid",
+                Prefs.showEcoOnDesktop(this),
+                checked -> Prefs.setBoolean(this, "eco_desktop", checked));
+    }
+
+    private void buildEcosystem() {
+        section("PocketDeX ecosystem");
+        LinearLayout card = card();
+        LinearLayout buttons = new LinearLayout(this);
+        buttons.setOrientation(LinearLayout.VERTICAL);
+        buttons.setPadding(0, dp(4), 0, dp(4));
+        card.addView(buttons);
+
+        actionButton(buttons, "Open Files", () ->
+                openEco("com.pocketdex.launcher.eco.FilesActivity"));
+        actionButton(buttons, "Open Editor", () ->
+                openEco("com.pocketdex.launcher.eco.EditorActivity"));
+        actionButton(buttons, "Open Terminal", () ->
+                openEco("com.pocketdex.launcher.eco.TerminalActivity"));
+        actionButton(buttons, "Open Calculator", () ->
+                openEco("com.pocketdex.launcher.eco.CalculatorActivity"));
+    }
+
+    private void openEco(String className) {
+        try {
+            startActivity(new Intent().setClassName(getPackageName(), className));
+        } catch (Exception ignored) {
+        }
     }
 
     private void buildHome() {
@@ -350,7 +381,7 @@ public class SettingsActivity extends Activity {
         card.addView(about);
 
         TextView version = new TextView(this);
-        version.setText("Version 1.0.0");
+        version.setText("Version 2.0.0");
         version.setTextColor(DIM);
         version.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         version.setPadding(0, dp(4), 0, dp(10));
