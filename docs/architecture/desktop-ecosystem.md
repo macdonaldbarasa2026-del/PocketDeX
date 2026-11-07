@@ -24,7 +24,8 @@ is an app descriptor plus a runtime provider:
 WorkspaceShell
   ├── AppCatalog                 installed Android apps + user-added PC apps
   ├── WindowCoordinator          launch, focus, bounds, display, reconnect
-  ├── DeviceCapabilityProfile    Android version, ABI, memory, presentation displays
+  ├── DeviceCapabilityProfile    Android version, ABI, memory, presentation displays,
+  │                               secondary-display activity feature
   └── RuntimeRegistry
         ├── AndroidRuntime       installed Android packages (existing path)
         ├── LinuxRuntime         future local/container or remote Linux session
@@ -105,8 +106,11 @@ remote workspace has a valid HTTPS gateway configured before launching the
 remote activity. A capability snapshot records Android API,
 supported ABIs, system memory state and connected presentation displays for
 runtime decisions and is visible in Settings as a refreshable device details
-card. This snapshot stays local; it does not claim to measure GPU performance
-or predict app compatibility. The registry can accept additional providers.
+card. It reports the Android secondary-display activity feature separately
+from attached presentation displays; the feature flag does not guarantee that
+a particular display launch will be permitted. This snapshot stays local; it
+does not claim to measure GPU performance or predict app compatibility. The
+registry can accept additional providers.
 The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
 `WinlatorRuntime` checks for the separate `com.winlator` app and an ARM64 ABI,
 then launches its home screen; PocketDeX does not yet import individual Windows
@@ -123,6 +127,7 @@ remain future work.
 - [Android multi-window support](https://developer.android.com/develop/ui/views/layout/support-multi-window-mode)
 - [Android desktop windowing](https://developer.android.com/develop/adaptive-apps/guides/support-desktop-windowing)
 - [Android connected displays](https://developer.android.com/develop/adaptive-apps/guides/support-connected-displays)
+- [Android secondary-display activity feature](https://developer.android.com/reference/android/content/pm/PackageManager#FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)
 - [Android ABI guidance](https://developer.android.com/ndk/guides/abis)
 - [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)
 - [AVF security and pVM permissions](https://source.android.com/docs/core/virtualization/security)

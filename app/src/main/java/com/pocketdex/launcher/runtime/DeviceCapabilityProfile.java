@@ -2,6 +2,7 @@ package com.pocketdex.launcher.runtime;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.view.Display;
@@ -20,11 +21,13 @@ public final class DeviceCapabilityProfile {
     private final long availableMemoryBytes;
     private final boolean lowMemory;
     private final int presentationDisplayCount;
+    private final boolean secondaryDisplayActivitiesSupported;
 
     private DeviceCapabilityProfile(int androidApi, String manufacturer, String model,
                                     List<String> supportedAbis, long totalMemoryBytes,
                                     long availableMemoryBytes, boolean lowMemory,
-                                    int presentationDisplayCount) {
+                                    int presentationDisplayCount,
+                                    boolean secondaryDisplayActivitiesSupported) {
         this.androidApi = androidApi;
         this.manufacturer = manufacturer;
         this.model = model;
@@ -34,6 +37,7 @@ public final class DeviceCapabilityProfile {
         this.availableMemoryBytes = availableMemoryBytes;
         this.lowMemory = lowMemory;
         this.presentationDisplayCount = presentationDisplayCount;
+        this.secondaryDisplayActivitiesSupported = secondaryDisplayActivitiesSupported;
     }
 
     public static DeviceCapabilityProfile capture(Context context) {
@@ -65,9 +69,11 @@ public final class DeviceCapabilityProfile {
 
         List<String> abis = new ArrayList<>();
         Collections.addAll(abis, Build.SUPPORTED_ABIS);
+        boolean secondaryDisplayActivities = context.getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS);
         return new DeviceCapabilityProfile(Build.VERSION.SDK_INT, Build.MANUFACTURER,
                 Build.MODEL, abis, totalMemory, availableMemory, lowMemory,
-                presentationDisplays);
+                presentationDisplays, secondaryDisplayActivities);
     }
 
     public int androidApi() {
@@ -100,5 +106,9 @@ public final class DeviceCapabilityProfile {
 
     public int presentationDisplayCount() {
         return presentationDisplayCount;
+    }
+
+    public boolean supportsActivitiesOnSecondaryDisplays() {
+        return secondaryDisplayActivitiesSupported;
     }
 }

@@ -456,6 +456,9 @@ public class SettingsActivity extends Activity {
                 + "System RAM: " + totalMemory + " total; " + availableMemory
                 + " currently available\n"
                 + "Presentation displays: " + profile.presentationDisplayCount() + "\n"
+                + "Activities on secondary displays: "
+                + (profile.supportsActivitiesOnSecondaryDisplays() ? "supported" : "not advertised")
+                + "\n"
                 + "GPU performance is not measured by this report.");
     }
 
