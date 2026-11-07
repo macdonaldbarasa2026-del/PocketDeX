@@ -84,9 +84,11 @@ configured HTTPS origin.
   configured gateway. It does not represent frame delivery, input round-trip
   time, or the health of a selected RDP/VNC connection.
 - Measuring selected-connection state requires instrumentation inside the
-  Guacamole page. A generic input event has no acknowledgment proving that the
-  remote host processed and displayed it, so input latency needs a defined
-  echo workload or equivalent remote-side instrumentation. See
+  Guacamole page. Its `Client.onstatechange` and `Client.onsync` hooks are
+  available to a gateway page integration, but a generic input event has no
+  acknowledgment proving that the remote host processed and displayed it, so
+  input latency needs a defined echo workload or equivalent remote-side
+  instrumentation. See
   [runtime measurement research](runtime-measurements.md).
 - This first client displays the Guacamole web app in a resizable Android
   activity. It does not yet expose native per-application windows, a mounted

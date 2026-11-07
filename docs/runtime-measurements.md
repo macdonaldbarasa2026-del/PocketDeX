@@ -70,12 +70,17 @@ guarantee that sustained workloads are unthrottled. See the
 and [AOSP thermal mitigation notes](https://source.android.com/docs/core/power/thermal-mitigation).
 
 On Android 16/API 36+, Settings also queries `SystemHealthManager` for CPU and
-GPU capacity headroom on a background thread. Each is an optional 0–100 estimate
-of remaining device capacity, and may be unavailable or unsupported by the
-device. These calls perform synchronous system-service transactions and may
-take more than 1 ms, so PocketDeX keeps them off the UI thread. They describe
-available capacity, not per-app benchmark results or extra compute added to the
-phone. See the [Android 16 headroom overview](https://developer.android.com/about/versions/16/features)
+GPU capacity headroom on a background thread. With default parameters, CPU
+headroom is based on the calling process (PocketDeX), while GPU headroom
+describes device GPU capacity. Each is an optional 0–100 estimate and may be
+unavailable or unsupported by the device. The CPU API can instead track a
+limited set of calling-process thread IDs, but those threads must share core
+affinity; the Settings snapshot does not select individual threads. These
+calls perform synchronous system-service transactions and may take more than
+1 ms, so PocketDeX keeps them off the UI thread. The estimates are not workload
+benchmarks or extra compute added to the phone. See the
+[CPU headroom parameters](https://developer.android.com/reference/android/os/CpuHeadroomParams.Builder),
+[Android 16 headroom overview](https://developer.android.com/about/versions/16/features)
 and [SystemHealthManager API](https://developer.android.com/reference/android/os/health/SystemHealthManager).
 
 ## Local runtime research

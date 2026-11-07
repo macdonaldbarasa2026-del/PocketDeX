@@ -67,8 +67,9 @@ any other app, and toggle the desktop ecosystem section in Settings.
   pointer devices, active mode and density for usable external presentation
   displays, Android-advertised and kernel-accessible memory, a system-wide
   available-memory snapshot, PocketDeX's approximate app heap class, Android
-  thermal status and forecast, plus supported Android 16 CPU/GPU capacity
-  estimates, secondary-display activity support and whether Android advertises
+  thermal status and forecast, plus Android 16 PocketDeX-process CPU and
+  device-GPU capacity estimates when supported, secondary-display activity
+  support and whether Android advertises
   freeform window management. Freeform behavior can still
   vary by display and device maker.
 - **Multiple built-in workspaces** — on Android 15+ System UI can offer new

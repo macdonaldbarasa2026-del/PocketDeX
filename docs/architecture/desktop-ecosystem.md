@@ -134,8 +134,9 @@ missing desktop peripherals. For eligible external presentation displays, it
 shows active resolution, refresh rate and logical density from Android's
 display APIs. This stays in the live on-device view and is not uploaded or
 stored. On API 29+, it also reports the current Android thermal severity and,
-on API 30+, Android's ten-second thermal headroom forecast. These are estimates,
-not temperatures or measured performance. It reports the Android
+on API 30+, Android's ten-second thermal headroom forecast, and on API 36+
+PocketDeX-process CPU and device GPU capacity estimates when supported. These
+are estimates, not temperatures or benchmark results. It reports the Android
 secondary-display activity feature separately
 from attached presentation displays; the feature flag does not guarantee that
 a particular display launch will be permitted.

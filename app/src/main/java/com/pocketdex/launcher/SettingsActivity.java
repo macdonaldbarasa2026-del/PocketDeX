@@ -554,10 +554,10 @@ public class SettingsActivity extends Activity {
                 .append(thermalStatusLabel(profile.thermalStatus())).append("\n")
                 .append("10-second thermal headroom forecast: ")
                 .append(thermalHeadroomLabel(profile.thermalHeadroom())).append("\n")
-                .append("CPU capacity headroom: ")
+                .append("PocketDeX process CPU headroom: ")
                 .append(Build.VERSION.SDK_INT >= 36 ? "checking…"
                         : "not available (Android 16+)").append("\n")
-                .append("GPU capacity headroom: ")
+                .append("Device GPU headroom: ")
                 .append(Build.VERSION.SDK_INT >= 36 ? "checking…"
                         : "not available (Android 16+)").append("\n")
                 .append("Thermal status is not a temperature reading; estimates and device "
@@ -597,10 +597,10 @@ public class SettingsActivity extends Activity {
                     return;
                 }
                 String details = capabilityDetails.getText().toString()
-                        .replace("CPU capacity headroom: checking…",
-                                "CPU capacity headroom: " + resourceHeadroomLabel(cpu))
-                        .replace("GPU capacity headroom: checking…",
-                                "GPU capacity headroom: " + resourceHeadroomLabel(gpu));
+                        .replace("PocketDeX process CPU headroom: checking…",
+                                "PocketDeX process CPU headroom: " + resourceHeadroomLabel(cpu))
+                        .replace("Device GPU headroom: checking…",
+                                "Device GPU headroom: " + resourceHeadroomLabel(gpu));
                 capabilityDetails.setText(details);
             });
         });
