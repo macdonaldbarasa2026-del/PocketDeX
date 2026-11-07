@@ -1,0 +1,78 @@
+name: Build PocketDeX APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install platform and build tools
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Verify APK
+        run: |
+          apk="app/build/outputs/apk/debug/app-debug.apk"
+          test -f "$apk"
+          ls -lh "$apk"
+          unzip -Z1 "$apk" | grep -q "AndroidManifest.xml"
+          unzip -Z1 "$apk" | grep -q "classes.dex"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketdex-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Release latest APK
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "PocketDeX - Desktop Mode Launcher (latest)"
+          body: |
+            PocketDeX turns your Android phone or tablet into a PC-style desktop.
+
+            Features:
+            - PC-style desktop with wallpaper and app icon grid
+            - Start menu with instant app search
+            - Taskbar with pinned and recent apps, clock, battery and network
+            - Windowed app launching (on devices that support freeform windows)
+            - Desktop mode on external monitors via HDMI/USB-C
+            - Keyboard and mouse support (Start key, arrows, Enter, Esc, right-click)
+            - Settings for icon size, columns, labels, taskbar auto-hide and more
+
+            Install the APK, press Home, and choose PocketDeX as your launcher.
+          files: app/build/outputs/apk/debug/app-debug.apk
+          prerelease: false
+          make_latest: true

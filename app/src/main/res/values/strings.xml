@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PocketDeX</string>
+    <string name="settings_title">PocketDeX Settings</string>
+    <string name="start">Start</string>
+    <string name="search_apps">Search apps</string>
+    <string name="all_apps">All apps</string>
+    <string name="open">Open</string>
+    <string name="open_window">Open in window</string>
+    <string name="open_external">Open on external display</string>
+    <string name="pin_desktop">Pin to desktop</string>
+    <string name="unpin_desktop">Unpin from desktop</string>
+    <string name="app_info">App info</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="wallpaper">Change wallpaper</string>
+    <string name="default_home">Set as default home</string>
+    <string name="reload_apps">Reload apps</string>
+    <string name="show_desktop">Show desktop</string>
+    <string name="not_default_home">PocketDeX is not your default home. Tap to set it.</string>
+    <string name="windowed_unsupported">This device does not allow freeform windows. Opening fullscreen.</string>
+    <string name="external_unsupported">No external display detected.</string>
+    <string name="no_apps">No apps found</string>
+    <string name="recent_empty">No recent apps yet</string>
+    <string name="about">About</string>
+    <string name="about_text">PocketDeX is a PC-style desktop launcher for Android. Windowed apps and external-display desktop depend on device multi-window support. Press Home and choose PocketDeX as your launcher to use it.</string>
+    <string name="shortcuts_title">Keyboard &amp; mouse</string>
+    <string name="shortcuts_text">Start / Meta key: open Start menu\nEsc: close Start menu\nArrow keys + Enter: navigate and open\nRight-click: context menu\nAlt+Tab: switch recent apps\nScroll wheel: scroll app lists</string>
+</resources>

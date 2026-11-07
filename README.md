@@ -1,0 +1,72 @@
+# PocketDeX
+
+PocketDeX is an Android **desktop-mode launcher** that turns your phone or tablet
+into a PC-style workspace. It replaces the home screen with a desktop, a Start
+menu and a taskbar, and it can extend that desktop to an external monitor.
+
+> PocketDeX is a launcher, not a bootloader or a replacement operating system.
+> It runs on top of Android and uses the multi-window / multi-display features
+> that your device exposes.
+
+## Features
+
+- **PC-style desktop** with your wallpaper, an app icon grid, labels and a
+  wallpaper dim control.
+- **Start menu** with instant app search, all-apps grid and quick actions
+  (wallpaper, default-home settings, PocketDeX settings).
+- **Taskbar** with Start button, pinned apps, recent apps, clock/date, battery,
+  network status and a settings shortcut.
+- **Windowed launching** through Android freeform window bounds where the device
+  supports it (fallback: normal fullscreen).
+- **External display desktop** over HDMI / USB-C using a second `Presentation`
+  desktop, and per-app "Open on external display".
+- **Keyboard & mouse support**:
+  - Start / Meta key or Search key: open the Start menu
+  - Esc: close the Start menu
+  - Arrow keys + Enter: navigate and open
+  - Right-click: context menu
+  - Alt+Tab: switch recent apps
+  - F5: reload the app list
+- **Customization**: icon size, automatic or fixed grid columns, labels,
+  double-tap to launch, taskbar fade, fullscreen, clock seconds and external
+  desktop toggle.
+- **Live updates**: package install/uninstall broadcasts refresh the app list.
+- **Set as default home**: press Home and choose PocketDeX.
+
+## Install
+
+1. Download `app-debug.apk` from the latest GitHub Release.
+2. Allow "Install unknown apps" for your file manager/browser if prompted.
+3. Install and open PocketDeX.
+4. Press the Home button and choose **PocketDeX** as your home app.
+   You can also open PocketDeX Settings → **Set PocketDeX as default home**.
+
+## Build
+
+The APK is built on GitHub Actions, not on the phone:
+
+- Push to `main` (or run the workflow manually).
+- The workflow builds `app/build/outputs/apk/debug/app-debug.apk`, uploads it as
+  an artifact and publishes it to the `latest` release.
+
+Local build (requires a desktop Android SDK):
+
+```bash
+./gradlew assembleDebug
+```
+
+## Known limitations
+
+- **Freeform windowed apps** require the device/ROM to support freeform
+  multi-window. On phones that do not, "Open in window" falls back to
+  fullscreen.
+- **External-display desktop** is shown while PocketDeX is the visible home app.
+  Android does not allow ordinary apps to keep a presentation desktop on an
+  external display while they are fully in the background.
+- Launching another app on a secondary display can be restricted by the OEM.
+  PocketDeX catches the failure and falls back to the phone display.
+- The taskbar lives inside the launcher. A system-wide floating taskbar over
+  other apps would require the "display over other apps" permission and was
+  intentionally left out of this version.
+- PocketDeX does not unlock bootloaders, root devices or change the operating
+  system.
