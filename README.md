@@ -54,6 +54,8 @@ any other app, and toggle the desktop ecosystem section in Settings.
   supports it (fallback: normal fullscreen).
 - **External display desktop** over HDMI / USB-C using a second `Presentation`
   desktop, and per-app "Open on external display".
+- Per-app external-display launches follow Android's device and display policy;
+  PocketDeX reports when Android falls back to opening the app on the phone.
 - The PocketDeX `Presentation` desktop refreshes its layout when Android reports
   changes to its attached display. Supported Android 16 QPR3 devices can also
   provide an OS-managed connected-display desktop workspace; it is separate

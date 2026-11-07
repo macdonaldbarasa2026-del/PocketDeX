@@ -172,6 +172,10 @@ supported Android 16 QPR3 devices, the OS can also provide a separate connected
 display desktop-windowing workspace; PocketDeX does not control that system
 workspace. See [Android connected-display support](https://developer.android.com/blog/posts/android-devices-extend-seamlessly-to-connected-displays)
 and the [Presentation display callbacks](https://developer.android.com/reference/android/app/Presentation).
+Launching an installed app onto a public external display uses Android's
+`ActivityOptions.setLaunchDisplayId` when the device advertises secondary
+display activity support. PocketDeX checks display policy where available and
+falls back to the phone with a message if Android rejects that launch.
 Remote PC includes a user-triggered fullscreen request for Android 14 and
 newer. The platform can approve or reject a transition from a multi-window
 state, and PocketDeX only changes the toolbar control after approval. It does

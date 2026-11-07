@@ -57,6 +57,12 @@ The upstream source manifest currently exports the launcher but keeps its
 rendering activity and foreground service private, so PocketDeX cannot safely
 dispatch directly to a Windows app through those components.
 
+Android secondary-display feature reporting is only a device capability
+advertisement. `ActivityOptions.setLaunchDisplayId` may still be rejected for a
+specific display or activity by platform policy; report successful dispatch
+separately from the feature flag. PocketDeX now tells the user when an app
+launch falls back to the phone after an external-display launch is rejected.
+
 ## AI and remote compute
 
 The AI provider remains undecided. Provider credentials must not be embedded

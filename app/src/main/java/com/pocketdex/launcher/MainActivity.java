@@ -259,6 +259,12 @@ public class MainActivity extends Activity implements DesktopView.Host {
         } catch (Exception first) {
             try {
                 startActivity(intent);
+                if (displayId != Display.DEFAULT_DISPLAY) {
+                    Toast.makeText(this,
+                            "Android could not open " + app.label
+                                    + " on that display; opened it on the phone instead.",
+                            Toast.LENGTH_LONG).show();
+                }
             } catch (Exception second) {
                 Toast.makeText(this, "Unable to open " + app.label,
                         Toast.LENGTH_SHORT).show();

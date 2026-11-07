@@ -521,7 +521,8 @@ public class SettingsActivity extends Activity {
                 .append(profile.presentationDisplayCount()).append("\n")
                 .append("Activities on secondary displays: ")
                 .append(profile.supportsActivitiesOnSecondaryDisplays()
-                        ? "supported" : "not advertised").append("\n")
+                        ? "advertised; device policy can still reject a launch"
+                        : "not advertised").append("\n")
                 .append("Freeform window management: ")
                 .append(profile.supportsFreeformWindowManagement()
                         ? "advertised" : "not advertised").append("\n")
