@@ -1,0 +1,49 @@
+# Linux desktop runtime research
+
+## Supported user-managed path
+
+Termux:X11 is an Android X server add-on paired with a Termux package. Its
+upstream guide says Android 8 or later is required and both the Android app and
+the companion package must be installed. The app is distributed from the
+project's nightly release; Termux installs the companion package from its
+graphical package repository. The shared-UID APK variant only works with the
+GitHub-signed Termux app, so installations from other distribution sources
+must not mix that variant's signatures.
+
+PRoot-Distro can install and manage a Linux userland without root. For X11
+applications in a PRoot container, Termux:X11's guide requires `--shared-tmp`
+(or a correctly mapped `TMPDIR`) so the container can reach the X11 socket.
+The example below follows the upstream Debian/XFCE pattern:
+
+1. Install Termux and Termux:X11 from compatible sources and open Termux once.
+2. In Termux, run `pkg install x11-repo`, then `pkg install termux-x11-nightly proot-distro`.
+3. Create a Debian environment with `proot-distro install debian`.
+4. Start the server in Termux with `termux-x11 :1 &`.
+5. Enter the container with `proot-distro login debian --shared-tmp`.
+6. Inside Debian, install a desktop: `apt update && apt install xfce4 dbus-x11`.
+7. Start it inside Debian: `DISPLAY=:1 dbus-launch --exit-with-session xfce4-session`.
+
+This is a Linux userland sharing Android's kernel, CPU, memory, GPU access and
+thermal limits. PRoot is not a hardware virtual machine and does not add
+physical RAM or GPU capacity. Linux GUI support is through the X server; app
+compatibility, graphics acceleration, input and performance depend on the
+device and packages. Architecture-sensitive apps also need binaries compatible
+with the phone's userspace/ABI unless the user separately configures emulation.
+
+## PocketDeX integration boundary
+
+PocketDeX Settings presents this as a manual setup guide with links to the
+upstream projects. The launcher does not install packages, invoke Termux,
+configure a distribution or report Linux desktop session state. Termux's
+`RUN_COMMAND` interface allows other apps to execute commands in its user
+environment only after the user grants `com.termux.permission.RUN_COMMAND` and
+enables `allow-external-apps`; the latter explicitly permits arbitrary external
+commands. Adding that bridge would be a separate security-sensitive feature,
+not a harmless launch intent.
+
+Upstream references:
+
+- [Termux:X11 README and setup guide](https://github.com/termux/termux-x11)
+- [PRoot-Distro README](https://github.com/termux/proot-distro)
+- [Termux RUN_COMMAND intent and permission requirements](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)
+- [Termux external-app configuration](https://github.com/termux/termux-packages/blob/master/doc/termux.1.md.in)

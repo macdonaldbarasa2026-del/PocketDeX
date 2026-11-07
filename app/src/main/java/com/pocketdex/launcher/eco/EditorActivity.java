@@ -8,8 +8,11 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -108,7 +111,13 @@ public class EditorActivity extends Activity {
         root.addView(divider, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
 
-        editor = new EditText(this);
+        editor = new EditText(this) {
+            @Override
+            protected void onSelectionChanged(int selectionStart, int selectionEnd) {
+                super.onSelectionChanged(selectionStart, selectionEnd);
+                updateStatus();
+            }
+        };
         editor.setTextColor(TEXT);
         editor.setHintTextColor(DIM);
         editor.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
@@ -118,6 +127,20 @@ public class EditorActivity extends Activity {
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         editor.setBackgroundColor(Color.TRANSPARENT);
         editor.setPadding(dp(12), dp(10), dp(12), dp(10));
+        editor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence text, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence text, int start, int before, int count) {
+                updateStatus();
+            }
+
+            @Override
+            public void afterTextChanged(Editable text) {
+            }
+        });
         root.addView(editor, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
@@ -132,6 +155,21 @@ public class EditorActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
         return root;
+    }
+
+    @Override
+    public boolean dispatchKeyShortcutEvent(KeyEvent event) {
+        if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_S
+                && !event.isAltPressed()
+                && (event.isCtrlPressed() || event.isMetaPressed())) {
+            if (event.isShiftPressed()) {
+                saveAs();
+            } else {
+                save();
+            }
+            return true;
+        }
+        return super.dispatchKeyShortcutEvent(event);
     }
 
     private TextView toolbarButton(String label, int sizeSp,
@@ -163,6 +201,9 @@ public class EditorActivity extends Activity {
     }
 
     private void updateStatus() {
+        if (editor == null || status == null) {
+            return;
+        }
         String text = editor.getText().toString();
         int caret = editor.getSelectionStart();
         int line = 1;

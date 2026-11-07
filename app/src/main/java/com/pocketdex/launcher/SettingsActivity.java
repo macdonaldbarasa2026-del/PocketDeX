@@ -69,6 +69,7 @@ public class SettingsActivity extends Activity {
         buildRemoteWorkspace();
         buildRemoteSessionStatus();
         buildLocalWindowsRuntime();
+        buildLinuxRuntime();
         buildCapabilities();
         buildBehavior();
         buildHome();
@@ -403,6 +404,46 @@ public class SettingsActivity extends Activity {
         });
     }
 
+    private void buildLinuxRuntime() {
+        section("Linux desktop (Termux)");
+        LinearLayout linuxCard = card();
+        TextView description = subtitleText("Optional user-managed Linux desktop using Termux, "
+                + "PRoot-Distro and Termux:X11. PocketDeX does not install or control this environment. "
+                + "Install Termux and Termux:X11 from compatible signing sources, then install the "
+                + "Termux:X11 companion package and a Linux userland.");
+        description.setPadding(0, dp(10), 0, dp(8));
+        linuxCard.addView(description);
+
+        TextView steps = subtitleText("In Termux:\n"
+                + "1. pkg install x11-repo, then pkg install termux-x11-nightly proot-distro\n"
+                + "2. proot-distro install debian\n"
+                + "3. Start the X server: termux-x11 :1 &\n"
+                + "4. Enter Debian: proot-distro login debian --shared-tmp\n"
+                + "5. In Debian: apt update && apt install xfce4 dbus-x11\n"
+                + "6. In Debian: DISPLAY=:1 dbus-launch --exit-with-session xfce4-session\n\n"
+                + "This is a user-space Linux environment, not a VM: it shares Android's kernel and "
+                + "device resources. PocketDeX's built-in Terminal is separate from Termux.");
+        steps.setTextColor(DIM);
+        steps.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        steps.setLineSpacing(dp(3), 1f);
+        steps.setPadding(0, dp(4), 0, dp(8));
+        linuxCard.addView(steps);
+
+        actionButton(linuxCard, "Termux:X11 setup and usage", () -> openExternalUrl(
+                "https://github.com/termux/termux-x11"));
+        actionButton(linuxCard, "PRoot-Distro documentation", () -> openExternalUrl(
+                "https://github.com/termux/proot-distro"));
+    }
+
+    private void openExternalUrl(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+        } catch (Exception e) {
+            android.widget.Toast.makeText(this, "Unable to open documentation",
+                    android.widget.Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void buildRemoteSessionStatus() {
         section("Runtime session status");
         LinearLayout sessionCard = card();
@@ -439,6 +480,7 @@ public class SettingsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         updateRuntimeSessionDetails();
+        updateCapabilityDetails();
     }
 
     private void updateCapabilityDetails() {
@@ -449,17 +491,33 @@ public class SettingsActivity extends Activity {
                 this, profile.totalMemoryBytes());
         String availableMemory = android.text.format.Formatter.formatFileSize(
                 this, profile.availableMemoryBytes());
-        capabilityDetails.setText("Device: " + profile.manufacturer() + " "
-                + profile.model() + "\n"
-                + "Android API: " + profile.androidApi() + "\n"
-                + "Supported app ABIs: " + abis + "\n"
-                + "System RAM: " + totalMemory + " total; " + availableMemory
-                + " currently available\n"
-                + "Presentation displays: " + profile.presentationDisplayCount() + "\n"
-                + "Activities on secondary displays: "
-                + (profile.supportsActivitiesOnSecondaryDisplays() ? "supported" : "not advertised")
-                + "\n"
-                + "GPU performance is not measured by this report.");
+        String desktopSetup = (profile.hasPhysicalKeyboardConnected()
+                ? "Keyboard connected" : "Connect a hardware keyboard") + " · "
+                + (profile.hasPointerConnected()
+                ? "pointer or stylus detected" : "connect a mouse or trackpad") + " · "
+                + (profile.presentationDisplayCount() > 0
+                ? "presentation display available"
+                : "connect a supported external display");
+        StringBuilder details = new StringBuilder("Device: ")
+                .append(profile.manufacturer()).append(' ').append(profile.model()).append("\n")
+                .append("Desktop setup: ").append(desktopSetup).append("\n")
+                .append("Android API: ").append(profile.androidApi()).append("\n")
+                .append("Supported app ABIs: ").append(abis).append("\n")
+                .append("System RAM: ").append(totalMemory).append(" total; ")
+                .append(availableMemory).append(" currently available\n")
+                .append("External presentation displays: ")
+                .append(profile.presentationDisplayCount()).append("\n")
+                .append("Activities on secondary displays: ")
+                .append(profile.supportsActivitiesOnSecondaryDisplays()
+                        ? "supported" : "not advertised").append("\n")
+                .append("Freeform window management: ")
+                .append(profile.supportsFreeformWindowManagement()
+                        ? "advertised" : "not advertised").append("\n")
+                .append("Per-display policy may still ignore window bounds. GPU performance is not measured.");
+        for (String displaySummary : profile.externalDisplaySummaries()) {
+            details.append('\n').append(displaySummary);
+        }
+        capabilityDetails.setText(details.toString());
     }
 
     private void openEco(String className) {

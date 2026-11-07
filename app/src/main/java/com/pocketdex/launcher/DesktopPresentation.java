@@ -34,6 +34,14 @@ public class DesktopPresentation extends Presentation implements DesktopView.Hos
     }
 
     @Override
+    public void onDisplayChanged() {
+        super.onDisplayChanged();
+        if (desktop != null) {
+            desktop.onConfigurationChanged();
+        }
+    }
+
+    @Override
     public Context hostContext() {
         return getContext();
     }

@@ -18,9 +18,11 @@ without depending on whatever is installed on the phone:
   built-in Editor, open other files with any installed app, create folders
   and files, rename and delete.
 - **Editor** — plain-text editor with load/save over SAF, "Save As",
-  word-wrap toggle, line/column status and monospace typography.
+  word-wrap toggle, live line/column status, monospace typography and hardware
+  keyboard shortcuts (`Ctrl+S` to save, `Ctrl+Shift+S` to save as).
 - **Terminal** — an embedded `/system/bin/sh` session inside the launcher with
-  Ctrl+C, clear, kill and quick command buttons, plus your hardware keyboard.
+  Ctrl+C to stop a running command, clear/stop controls and quick command
+  buttons, plus hardware keyboard input.
 - **Calculator** — expression calculator with live result preview
   (`+ - * / % ( ) ^`).
 - **Remote PC** — connect to a user-managed Apache Guacamole HTTPS gateway for
@@ -28,6 +30,10 @@ without depending on whatever is installed on the phone:
   on the configured remote host.
 - **Local Windows** — launch the separately installed Winlator runtime on
   supported 64-bit ARM devices to run compatible x86-64 Windows applications.
+- **Linux desktop setup** — Settings includes a guide for a separately managed
+  Termux + PRoot-Distro + Termux:X11 desktop. It shares Android's kernel and
+  device resources; it is not a VM and PocketDeX does not execute Termux
+  commands or manage Linux sessions.
 
 Ecosystem apps appear in the Start menu tiles, default taskbar dock, desktop
 grid and the empty-desktop right-click menu. You can pin or unpin them like
@@ -45,6 +51,18 @@ any other app, and toggle the desktop ecosystem section in Settings.
   supports it (fallback: normal fullscreen).
 - **External display desktop** over HDMI / USB-C using a second `Presentation`
   desktop, and per-app "Open on external display".
+- The PocketDeX `Presentation` desktop refreshes its layout when Android reports
+  changes to its attached display. Supported Android 16 QPR3 devices can also
+  provide an OS-managed connected-display desktop workspace; it is separate
+  from PocketDeX's optional presentation.
+- **Desktop setup check** in Settings reports detected physical keyboard and
+  pointer devices, active mode and density for usable external presentation
+  displays, secondary-display activity support and whether Android advertises
+  freeform window management. Freeform behavior can still vary by display and
+  device maker.
+- **Multiple built-in workspaces** — on Android 15+ System UI can offer new
+  windows for Files, Editor, Terminal and Calculator. Availability depends on
+  the device's desktop windowing UI.
 - **Keyboard & mouse support**:
   - Start / Meta key or Search key: open the Start menu
   - Esc: close the Start menu
@@ -90,6 +108,9 @@ connection model and security requirements.
 Local Windows execution requires Winlator to be installed separately. See
 [the local compatibility notes](docs/local-windows-runtime.md) for support
 limits and the official download source.
+
+For a separately managed Linux desktop, see Settings or the
+[Linux runtime research](docs/linux-desktop-runtime.md).
 
 ## Known limitations
 

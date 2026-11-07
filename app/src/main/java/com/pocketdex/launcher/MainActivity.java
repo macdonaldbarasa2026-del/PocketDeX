@@ -23,6 +23,8 @@ import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.widget.Toast;
 
+import com.pocketdex.launcher.runtime.DisplayUtils;
+
 public class MainActivity extends Activity implements DesktopView.Host {
 
     private DesktopView desktop;
@@ -233,9 +235,16 @@ public class MainActivity extends Activity implements DesktopView.Host {
             ActivityOptions options = ActivityOptions.makeBasic();
             boolean hasOptions = false;
             if (windowed) {
-                Rect bounds = nextWindowBounds(displayId);
-                options.setLaunchBounds(bounds);
-                hasOptions = true;
+                if (getPackageManager().hasSystemFeature(
+                        PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT)) {
+                    Rect bounds = nextWindowBounds(displayId);
+                    options.setLaunchBounds(bounds);
+                    hasOptions = true;
+                } else {
+                    Toast.makeText(this,
+                            "Android does not advertise freeform windows; opening normally.",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
             if (displayId != Display.DEFAULT_DISPLAY
                     && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -268,14 +277,23 @@ public class MainActivity extends Activity implements DesktopView.Host {
         } else {
             metrics.setTo(getResources().getDisplayMetrics());
         }
-        int width = Math.max(Ui.dp(this, 320),
-                Math.round(metrics.widthPixels * 0.72f));
-        int height = Math.max(Ui.dp(this, 240),
-                Math.round(metrics.heightPixels * 0.70f));
-        int step = Ui.dp(this, 22) * (cascade % 5);
-        int x = Math.max(0, Math.round((metrics.widthPixels - width) / 2f)
-                - Ui.dp(this, 90) + step);
-        int y = Math.max(0, Math.round(metrics.heightPixels * 0.08f) + step);
+        if (metrics.widthPixels <= 0 || metrics.heightPixels <= 0) {
+            metrics.setTo(getResources().getDisplayMetrics());
+        }
+        float density = metrics.density > 0f
+                ? metrics.density : getResources().getDisplayMetrics().density;
+        int minWidth = Math.round(320f * density);
+        int minHeight = Math.round(240f * density);
+        int width = Math.min(metrics.widthPixels,
+                Math.max(minWidth, Math.round(metrics.widthPixels * 0.72f)));
+        int height = Math.min(metrics.heightPixels,
+                Math.max(minHeight, Math.round(metrics.heightPixels * 0.70f)));
+        int step = Math.round(22f * density) * (cascade % 5);
+        int desiredX = Math.round((metrics.widthPixels - width) / 2f)
+                - Math.round(90f * density) + step;
+        int desiredY = Math.round(metrics.heightPixels * 0.08f) + step;
+        int x = Math.max(0, Math.min(metrics.widthPixels - width, desiredX));
+        int y = Math.max(0, Math.min(metrics.heightPixels - height, desiredY));
         cascade++;
         return new Rect(x, y, x + width, y + height);
     }
@@ -308,7 +326,7 @@ public class MainActivity extends Activity implements DesktopView.Host {
     }
 
     private boolean isUsableExternal(Display display) {
-        if (display == null || display.getDisplayId() == Display.DEFAULT_DISPLAY) {
+        if (!DisplayUtils.isExternal(display)) {
             return false;
         }
         if (display.getState() != Display.STATE_ON) {
@@ -322,7 +340,7 @@ public class MainActivity extends Activity implements DesktopView.Host {
             dismissPresentation();
             return;
         }
-        Display target = findExternalDisplay();
+        Display target = findPresentationDisplay();
         if (target == null) {
             dismissPresentation();
             return;
@@ -348,6 +366,19 @@ public class MainActivity extends Activity implements DesktopView.Host {
         } catch (Exception ignored) {
             presentation = null;
         }
+    }
+
+    private Display findPresentationDisplay() {
+        if (displayManager == null) {
+            return null;
+        }
+        for (Display display : displayManager.getDisplays(
+                DisplayManager.DISPLAY_CATEGORY_PRESENTATION)) {
+            if (DisplayUtils.isUsablePresentationDisplay(display)) {
+                return display;
+            }
+        }
+        return null;
     }
 
     private void dismissPresentation() {

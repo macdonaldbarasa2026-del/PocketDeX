@@ -49,7 +49,11 @@
             android:label="@string/files_title"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
-            android:theme="@style/Theme.PocketDeX" />
+            android:theme="@style/Theme.PocketDeX">
+            <property
+                android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
+                android:value="true" />
+        </activity>
 
         <activity
             android:name=".eco.EditorActivity"
@@ -57,7 +61,11 @@
             android:label="@string/editor_title"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
-            android:theme="@style/Theme.PocketDeX" />
+            android:theme="@style/Theme.PocketDeX">
+            <property
+                android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
+                android:value="true" />
+        </activity>
 
         <activity
             android:name=".eco.TerminalActivity"
@@ -65,7 +73,11 @@
             android:label="@string/terminal_title"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
-            android:theme="@style/Theme.PocketDeX" />
+            android:theme="@style/Theme.PocketDeX">
+            <property
+                android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
+                android:value="true" />
+        </activity>
 
         <activity
             android:name=".eco.CalculatorActivity"
@@ -73,7 +85,11 @@
             android:label="@string/calculator_title"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode"
-            android:theme="@style/Theme.PocketDeX" />
+            android:theme="@style/Theme.PocketDeX">
+            <property
+                android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
+                android:value="true" />
+        </activity>
 
         <activity
             android:name=".eco.RemoteWorkspaceActivity"

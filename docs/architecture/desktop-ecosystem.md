@@ -24,8 +24,8 @@ is an app descriptor plus a runtime provider:
 WorkspaceShell
   ├── AppCatalog                 installed Android apps + user-added PC apps
   ├── WindowCoordinator          launch, focus, bounds, display, reconnect
-  ├── DeviceCapabilityProfile    Android version, ABI, memory, presentation displays,
-  │                               secondary-display activity feature
+  ├── DeviceCapabilityProfile    Android version, ABI, memory, physical keyboard/pointer,
+  │                               external presentation displays, secondary-display activity feature
   └── RuntimeRegistry
         ├── AndroidRuntime       installed Android packages (existing path)
         ├── LinuxRuntime         future local/container or remote Linux session
@@ -81,8 +81,12 @@ resources as local RAM or local GPU capacity.
    VNC bridging. The client supports reconnect, system file pickers for file
    transfers, a single HTTPS gateway response-time probe, and opt-in activity
    launch on an external display when the device allows it. It does not report
-   RDP/VNC input latency or resource usage. Do not provision cloud compute
-   until provider, cost and credentials are explicitly chosen.
+   RDP/VNC input latency or resource usage. Per-connection state requires
+   instrumentation inside the Guacamole client page; end-to-end input latency
+   additionally requires a defined acknowledgment or controlled echo workload.
+   See [runtime measurement research](../runtime-measurements.md). Do not
+   provision cloud compute until provider, cost and credentials are explicitly
+   chosen.
 4. **Local compatibility research:** PocketDeX now detects and launches the
    separately installed Winlator app on ARM64 devices. Next add per-app
    shortcuts and benchmark a published device/app matrix. Do not assume Android's
@@ -91,6 +95,13 @@ resources as local RAM or local GPU capacity.
    Microdroid lacks Android Java APIs and graphics/UI. Evaluate user-space
    emulation and OEM-specific options separately; ship only after licensing,
    security and per-device performance are understood.
+   A separate Settings guide documents the user-managed Termux:X11 plus
+   PRoot-Distro Linux desktop path. The X server requires both its Android app
+   and Termux companion package; PRoot-Distro requires shared temporary files
+   for X11 sockets. PocketDeX does not call Termux's external command API:
+   Termux requires a special permission and an opt-in setting that permits
+   other apps to run commands in its environment. See
+   [Linux desktop setup research](../linux-desktop-runtime.md).
 5. **AI-assisted engineering:** add opt-in diagnostics and research summaries
    after the runtime boundary exists, with redaction, clear data disclosure and
    user review of every code or shell action.
@@ -103,14 +114,39 @@ Android launch path now goes through `AppDescriptor`, `RuntimeProvider`,
 `RuntimeRegistry` and `AndroidAppRuntime`, which reports whether an app is
 ready, missing, disabled or invalid. `GuacamoleRuntime` checks whether the
 remote workspace has a valid HTTPS gateway configured before launching the
-remote activity. A capability snapshot records Android API,
-supported ABIs, system memory state and connected presentation displays for
-runtime decisions and is visible in Settings as a refreshable device details
-card. It reports the Android secondary-display activity feature separately
+remote activity. A capability snapshot records Android API, supported ABIs,
+system memory state and eligible external presentation displays for runtime decisions
+and is visible in Settings as a refreshable device details card. The card also
+reports attached non-virtual keyboard and pointer devices so users can identify
+missing desktop peripherals. For eligible external presentation displays, it
+shows active resolution, refresh rate and logical density from Android's
+display APIs. This stays in the live on-device view and is not uploaded or
+stored. It reports the Android secondary-display activity feature separately
 from attached presentation displays; the feature flag does not guarantee that
-a particular display launch will be permitted. This snapshot stays local; it
+a particular display launch will be permitted.
+Android's freeform/desktop-windowing support varies by OS version and device
+maker. Settings reports `FEATURE_FREEFORM_WINDOW_MANAGEMENT`, but PocketDeX
+does not treat that device-wide feature as a guarantee that every display will
+accept requested launch bounds. Windowed launches skip bounds when Android
+does not advertise the feature and tell the user that the app is opening
+normally.
+On Android versions that expose `Display.isInternal()`, PocketDeX excludes
+built-in displays from external-display selection even if they advertise
+presentation support. Older versions fall back to the non-default display ID
+and presentation category convention.
+Android recommends adapting to actual window and display conditions and
+handling configuration changes when activities move between displays. Windowed
+launch bounds are expressed in screen pixels, so PocketDeX now converts its
+minimum window size and cascade offset using the target display's density and
+clamps the result to that display's pixel bounds. This snapshot stays local; it
 does not claim to measure GPU performance or predict app compatibility. The
 registry can accept additional providers.
+On Android 15+, Files, Editor, Terminal and Calculator declare
+`PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI`. These activities use the default
+multiple-instance-compatible launch mode, so supporting System UI's optional
+new-window affordance is consistent with their separate per-activity state.
+The property only requests a System UI affordance; the OS/device must provide
+desktop windowing and actual launch behavior still follows Android task rules.
 The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
 `WinlatorRuntime` checks for the separate `com.winlator` app and an ARM64 ABI,
 then launches its home screen; PocketDeX does not yet import individual Windows
@@ -122,11 +158,29 @@ errors and user disconnect. Native per-app remote windows, actual Android and
 Winlator process lifecycle callbacks, and session-scoped resource telemetry
 remain future work.
 
+The optional PocketDeX external desktop is an Android `Presentation` with
+display-specific resources. It refreshes its view when Android reports that
+the attached display's properties changed, including size or density. On
+supported Android 16 QPR3 devices, the OS can also provide a separate connected
+display desktop-windowing workspace; PocketDeX does not control that system
+workspace. See [Android connected-display support](https://developer.android.com/blog/posts/android-devices-extend-seamlessly-to-connected-displays)
+and the [Presentation display callbacks](https://developer.android.com/reference/android/app/Presentation).
+
 ## Platform references
 
 - [Android multi-window support](https://developer.android.com/develop/ui/views/layout/support-multi-window-mode)
 - [Android desktop windowing](https://developer.android.com/develop/adaptive-apps/guides/support-desktop-windowing)
+- [Android multi-instance system UI property](https://developer.android.com/reference/android/view/WindowManager#PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI)
 - [Android connected displays](https://developer.android.com/develop/adaptive-apps/guides/support-connected-displays)
+- [Android ActivityOptions launch bounds](https://developer.android.com/reference/android/app/ActivityOptions#setLaunchBounds(android.graphics.Rect))
+- [Android freeform window management feature](https://developer.android.com/reference/android/content/pm/PackageManager#FEATURE_FREEFORM_WINDOW_MANAGEMENT)
+- [Android display-specific Context resources](https://developer.android.com/reference/android/content/Context#createDisplayContext(android.view.Display))
+- [Android Presentation behavior](https://developer.android.com/reference/android/app/Presentation)
+- [Android Display.isInternal API](https://developer.android.com/reference/android/view/Display#isInternal())
+- [Android Display.Mode API](https://developer.android.com/reference/android/view/Display.Mode)
+- [Android display-specific window metrics](https://developer.android.com/develop/adaptive-apps/guides/support-multi-window-mode#window-metrics)
+- [Android large-screen keyboard and pointer input](https://developer.android.com/develop/ui/views/touch-and-input/input-compatibility-on-large-screens)
+- [Android InputDevice API](https://developer.android.com/reference/android/view/InputDevice)
 - [Android secondary-display activity feature](https://developer.android.com/reference/android/content/pm/PackageManager#FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)
 - [Android ABI guidance](https://developer.android.com/ndk/guides/abis)
 - [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)
@@ -134,4 +188,6 @@ remain future work.
 - [Microdroid capabilities and limitations](https://source.android.com/docs/core/virtualization/microdroid)
 - [Winlator Android app and compatibility notes](https://github.com/brunodev85/winlator)
 - [Winlator app ABI/build configuration](https://github.com/brunodev85/winlator-app/blob/main/app/build.gradle)
+- [Termux:X11 project and setup guide](https://github.com/termux/termux-x11)
+- [PRoot-Distro project and commands](https://github.com/termux/proot-distro)
 - [Box64 architecture and platform requirements](https://github.com/ptitSeb/box64)

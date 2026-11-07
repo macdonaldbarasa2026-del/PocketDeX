@@ -46,7 +46,7 @@ public final class RemoteWorkspaceDisplayLauncher {
     }
 
     private static boolean isEligible(Context context, Display display, Intent intent) {
-        if (display == null || display.getDisplayId() == Display.DEFAULT_DISPLAY
+        if (!DisplayUtils.isExternal(display)
                 || display.getState() != Display.STATE_ON
                 || (display.getFlags() & Display.FLAG_PRIVATE) != 0) {
             return false;

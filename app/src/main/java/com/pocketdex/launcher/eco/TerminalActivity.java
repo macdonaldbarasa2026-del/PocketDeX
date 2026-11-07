@@ -6,6 +6,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -118,6 +119,11 @@ public class TerminalActivity extends Activity implements ShellEngine.Listener {
             runInput();
             return true;
         });
+        input.setOnKeyListener((view, keyCode, event) -> {
+            return event.getAction() == KeyEvent.ACTION_DOWN
+                    && event.getRepeatCount() == 0
+                    && handleStopShortcut(event);
+        });
         inputRow.addView(input, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
@@ -136,6 +142,28 @@ public class TerminalActivity extends Activity implements ShellEngine.Listener {
         root.addView(quickRow);
 
         return root;
+    }
+
+    @Override
+    public boolean dispatchKeyShortcutEvent(KeyEvent event) {
+        if (handleStopShortcut(event)) {
+            return true;
+        }
+        return super.dispatchKeyShortcutEvent(event);
+    }
+
+    private boolean handleStopShortcut(KeyEvent event) {
+        if (event == null || event.getKeyCode() != KeyEvent.KEYCODE_C
+                || !event.isCtrlPressed() || event.isShiftPressed()
+                || event.isAltPressed() || event.isMetaPressed()
+                || engine == null || !engine.busy()
+                || input == null || input.length() != 0
+                || getCurrentFocus() != input) {
+            return false;
+        }
+        engine.stop();
+        appendText("^C\n[stopped]\n");
+        return true;
     }
 
     private TextView quickButton(String label, View.OnClickListener action) {
@@ -169,6 +197,7 @@ public class TerminalActivity extends Activity implements ShellEngine.Listener {
         appendText("\nhelp: type a command and press Run or Enter.\n"
                 + "cd           go to /storage/emulated/0\n"
                 + "cd ../..     relative paths work\n"
+                + "Ctrl+C       stop the running command when the command field is empty\n"
                 + "Stop         kill the running command\n");
     }
 
