@@ -540,13 +540,24 @@ public class SettingsActivity extends Activity {
                         ? "advertised" : "not advertised").append("\n")
                 .append("OS thermal status (snapshot): ")
                 .append(thermalStatusLabel(profile.thermalStatus())).append("\n")
-                .append("Thermal status is not a temperature reading; vendor reporting may vary. "
+                .append("10-second thermal headroom forecast: ")
+                .append(thermalHeadroomLabel(profile.thermalHeadroom())).append("\n")
+                .append("Thermal status is not a temperature reading; headroom is an estimate "
+                        + "and vendor reporting may vary. "
                         + "Per-display policy may still ignore window bounds. "
                         + "GPU performance is not measured.");
         for (String displaySummary : profile.externalDisplaySummaries()) {
             details.append('\n').append(displaySummary);
         }
         capabilityDetails.setText(details.toString());
+    }
+
+    private String thermalHeadroomLabel(float headroom) {
+        if (Float.isNaN(headroom) || Float.isInfinite(headroom) || headroom < 0f) {
+            return "not reported";
+        }
+        return String.format(java.util.Locale.ROOT, "%.2f (closer to 1 means less headroom)",
+                headroom);
     }
 
     private String thermalStatusLabel(int status) {

@@ -31,6 +31,7 @@ public final class DeviceCapabilityProfile {
     private final boolean physicalKeyboardConnected;
     private final boolean pointerConnected;
     private final int thermalStatus;
+    private final float thermalHeadroom;
 
     private DeviceCapabilityProfile(int androidApi, String manufacturer, String model,
                                     List<String> supportedAbis, long advertisedMemoryBytes,
@@ -43,7 +44,8 @@ public final class DeviceCapabilityProfile {
                                     boolean freeformWindowManagementSupported,
                                     boolean physicalKeyboardConnected,
                                     boolean pointerConnected,
-                                    int thermalStatus) {
+                                    int thermalStatus,
+                                    float thermalHeadroom) {
         this.androidApi = androidApi;
         this.manufacturer = manufacturer;
         this.model = model;
@@ -62,6 +64,7 @@ public final class DeviceCapabilityProfile {
         this.physicalKeyboardConnected = physicalKeyboardConnected;
         this.pointerConnected = pointerConnected;
         this.thermalStatus = thermalStatus;
+        this.thermalHeadroom = thermalHeadroom;
     }
 
     public static DeviceCapabilityProfile capture(Context context) {
@@ -89,11 +92,19 @@ public final class DeviceCapabilityProfile {
         }
 
         int thermalStatus = -1;
+        float thermalHeadroom = Float.NaN;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             PowerManager powerManager = (PowerManager)
                     context.getSystemService(Context.POWER_SERVICE);
             if (powerManager != null) {
                 thermalStatus = powerManager.getCurrentThermalStatus();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    try {
+                        thermalHeadroom = powerManager.getThermalHeadroom(10);
+                    } catch (RuntimeException ignored) {
+                        // Some devices do not expose a usable thermal headroom estimate.
+                    }
+                }
             }
         }
 
@@ -137,7 +148,8 @@ public final class DeviceCapabilityProfile {
                 appMemoryClassMb, lowMemory,
                 presentationDisplays, externalDisplaySummaries,
                 secondaryDisplayActivities,
-                freeformWindowManagement, physicalKeyboard, pointer, thermalStatus);
+                freeformWindowManagement, physicalKeyboard, pointer, thermalStatus,
+                thermalHeadroom);
     }
 
     private static String summarizeExternalDisplay(Context context, Display display,
@@ -235,5 +247,10 @@ public final class DeviceCapabilityProfile {
     /** Android OS thermal severity snapshot, or -1 when the API is unavailable. */
     public int thermalStatus() {
         return thermalStatus;
+    }
+
+    /** Ten-second Android thermal headroom estimate, or NaN when unavailable. */
+    public float thermalHeadroom() {
+        return thermalHeadroom;
     }
 }

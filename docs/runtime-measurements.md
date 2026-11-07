@@ -51,13 +51,17 @@ and [Guacamole protocol synchronization](https://guacamole.apache.org/doc/gug/pr
 ## Device thermal status
 
 The Settings capability card samples Android's `PowerManager` thermal status
-when opened or resumed on API 29+. This is an OS severity category intended to
-reflect thermal mitigation, not a sensor temperature or a direct CPU/GPU
-performance measurement. Device makers define thermal behavior, and Android's
+when opened or resumed on API 29+ and its ten-second `getThermalHeadroom(10)`
+forecast on API 30+. Android recommends not polling headroom more often than
+about once per second; the Settings card only queries on screen refresh.
+Headroom estimates proximity to severe throttling from slow-moving thermal
+sensors, not sensor temperature or a direct CPU/GPU performance measurement.
+Device makers define thermal behavior, and Android's
 developer guidance notes that some devices may report `THERMAL_STATUS_NONE`
 even when headroom support is incomplete. Treat it as a useful snapshot, not a
 guarantee that sustained workloads are unthrottled. See the
-[PowerManager thermal API](https://developer.android.com/reference/android/os/PowerManager#getCurrentThermalStatus())
+[PowerManager thermal API](https://developer.android.com/reference/android/os/PowerManager#getCurrentThermalStatus()),
+[Android thermal headroom guidance](https://developer.android.com/games/optimize/adpf/thermal),
 and [AOSP thermal mitigation notes](https://source.android.com/docs/core/power/thermal-mitigation).
 
 ## Local runtime research
