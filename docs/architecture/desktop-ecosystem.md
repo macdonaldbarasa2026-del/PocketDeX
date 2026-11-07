@@ -151,8 +151,10 @@ The property only requests a System UI affordance; the OS/device must provide
 desktop windowing and actual launch behavior still follows Android task rules.
 The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
 `WinlatorRuntime` checks for the separate `com.winlator` app and an ARM64 ABI,
-then launches its home screen; PocketDeX does not yet import individual Windows
-shortcuts or manage Winlator containers. `RuntimeSession` and
+reports the installed package version, then launches its home screen;
+`RuntimeSession` stores that version with the dispatch record. PocketDeX does
+not yet import individual Windows shortcuts or manage Winlator containers.
+`RuntimeSession` and
 `RuntimeSessionStore` keep the latest 20 dispatch/session snapshots locally,
 without credentials or transferred file data. Settings exposes the latest
 dispatch; Guacamole updates its state through gateway page load, transport

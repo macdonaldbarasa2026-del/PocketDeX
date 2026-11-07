@@ -15,8 +15,10 @@ drivers, and configuration.
   containers and install Windows applications in Winlator itself.
 
 PocketDeX does not bundle, modify, or silently install Winlator. It checks the
-package and device ABI, then opens Winlator's exported launcher activity. The
-Windows application setup and compatibility controls remain in Winlator.
+package and device ABI, reports the installed package version, then opens
+Winlator's exported launcher activity. The local dispatch history records
+that version, but cannot observe container or Windows app health. The Windows
+application setup and compatibility controls remain in Winlator.
 
 ## Compatibility research
 
@@ -27,6 +29,10 @@ graphics translation add further compatibility layers. This makes per-app and
 per-device results essential. Keep a compatibility matrix for tested device,
 Android version, SoC/GPU, Winlator version, app version, graphics backend and
 observed result before making performance claims.
+
+The upstream release page distinguishes beta and final releases, so PocketDeX
+reports the installed package version instead of assuming a particular release
+is suitable or universally compatible.
 
 References: [Winlator project](https://github.com/brunodev85/winlator),
 [Winlator app build configuration](https://github.com/brunodev85/winlator-app/blob/main/app/build.gradle),

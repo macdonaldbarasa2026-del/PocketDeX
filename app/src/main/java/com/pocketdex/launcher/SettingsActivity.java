@@ -390,7 +390,9 @@ public class SettingsActivity extends Activity {
         section("Local Windows runtime");
         LinearLayout runtimeCard = card();
         TextView description = subtitleText("Winlator can run some x86-64 Windows apps locally "
-                + "using Wine and Box64. It requires a 64-bit ARM device and is installed separately.");
+                + "using Wine and Box64. It requires a 64-bit ARM device and is installed separately. "
+                + "Compatibility varies by app, device and graphics backend; PocketDeX records the "
+                + "installed version and launch dispatch, not container or app health.");
         description.setPadding(0, dp(10), 0, dp(8));
         runtimeCard.addView(description);
         actionButton(runtimeCard, "Open official Winlator releases", () -> {

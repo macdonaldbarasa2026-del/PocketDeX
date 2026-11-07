@@ -2,10 +2,12 @@ package com.pocketdex.launcher.runtime;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 /** Launch bridge to the separately installed Winlator x86-64 Windows runtime. */
 public final class WinlatorRuntime implements RuntimeProvider {
+    private static final int MAX_VERSION_LABEL_LENGTH = 32;
     public static final String RUNTIME_ID = "winlator";
     public static final String PACKAGE_NAME = "com.winlator";
     public static final String APP_ID = "windows:winlator";
@@ -30,12 +32,15 @@ public final class WinlatorRuntime implements RuntimeProvider {
                     "Winlator requires a 64-bit ARM Android device.");
         }
         try {
-            if (!context.getPackageManager().getApplicationInfo(PACKAGE_NAME, 0).enabled) {
+            PackageInfo installed = context.getPackageManager()
+                    .getPackageInfo(PACKAGE_NAME, 0);
+            if (installed.applicationInfo == null || !installed.applicationInfo.enabled) {
                 return new SupportReport(SupportReport.Status.UNAVAILABLE,
                         "Winlator is installed but disabled.");
             }
             return new SupportReport(SupportReport.Status.READY,
-                    "Winlator is installed. Windows app compatibility varies by app and device.");
+                    "Winlator " + safeVersion(installed.versionName)
+                            + " is installed. Compatibility varies by app, device and graphics backend.");
         } catch (PackageManager.NameNotFoundException e) {
             return new SupportReport(SupportReport.Status.NEEDS_SETUP,
                     "Install Winlator from Settings → Local Windows runtime, then return here.");
@@ -59,11 +64,32 @@ public final class WinlatorRuntime implements RuntimeProvider {
             context.startActivity(intent);
             RuntimeSessionStore.transition(context, session.id(),
                     RuntimeSession.State.DISPATCHED,
-                    "Winlator launch handed to Android; app and container state are not observable here.");
+                    "Winlator " + installedVersion(context)
+                            + " launch handed to Android; app and container state are not observable here.");
         } catch (Exception e) {
             RuntimeSessionStore.transition(context, session.id(),
                     RuntimeSession.State.FAILED, "Winlator could not be opened.");
             throw e;
         }
+    }
+
+    private String installedVersion(Context context) {
+        try {
+            PackageInfo info = context.getPackageManager().getPackageInfo(PACKAGE_NAME, 0);
+            return safeVersion(info.versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            return "unknown version";
+        }
+    }
+
+    private static String safeVersion(String version) {
+        if (version == null || version.trim().isEmpty()) {
+            return "unknown version";
+        }
+        String safe = version.replaceAll("[^A-Za-z0-9._+-]", "");
+        if (safe.length() > MAX_VERSION_LABEL_LENGTH) {
+            safe = safe.substring(0, MAX_VERSION_LABEL_LENGTH);
+        }
+        return safe.isEmpty() ? "unknown version" : "v" + safe;
     }
 }

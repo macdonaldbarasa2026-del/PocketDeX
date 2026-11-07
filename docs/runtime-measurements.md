@@ -46,12 +46,13 @@ and [Guacamole protocol synchronization](https://guacamole.apache.org/doc/gug/pr
 
 ## Local runtime research
 
-Winlator remains a separate app launch target. PocketDeX does not have a
-supported interface to enumerate Winlator containers or receive process and
-resource lifecycle events. Any deeper integration should first identify a
-stable, documented Winlator interface and verify its compatibility, licensing,
-security and maintenance cost. Until then, report launch dispatch only and
-keep device/app/backend results in a manually verified compatibility matrix.
+Winlator remains a separate app launch target. PocketDeX records the installed
+package version with each launch dispatch, but does not have a supported
+interface to enumerate containers or receive process and resource lifecycle
+events. Any deeper integration should first identify a stable, documented
+Winlator interface and verify its compatibility, licensing, security and
+maintenance cost. Keep device/app/backend results in a manually verified
+compatibility matrix; a version label is not an app health measurement.
 
 ## AI and remote compute
 
