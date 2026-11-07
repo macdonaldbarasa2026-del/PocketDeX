@@ -1,6 +1,7 @@
 package com.pocketdex.launcher.eco;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -59,9 +60,10 @@ public final class RemoteWorkspaceActivity extends Activity {
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
         toolbar.setPadding(dp(8), dp(6), dp(8), dp(6));
         toolbar.addView(toolbarButton("Back", v -> finish()));
-        toolbar.addView(toolbarButton("Reload", v -> {
-            if (webView != null) {
-                webView.reload();
+        toolbar.addView(toolbarButton("Reconnect", v -> {
+            if (webView != null && trustedOrigin != null) {
+                status.setText("Reconnecting to the Guacamole gateway…");
+                webView.loadUrl(trustedOrigin.toString());
             }
         }));
         toolbar.addView(toolbarButton("Disconnect", v -> disconnect()));
@@ -99,13 +101,25 @@ public final class RemoteWorkspaceActivity extends Activity {
             @Override
             public void onProgressChanged(WebView view, int progress) {
                 if (progress < 100) {
-                    status.setText("Connecting to remote workspace… " + progress + "%");
+                    status.setText("Loading Guacamole gateway… " + progress + "%");
                 } else {
-                    status.setText("Remote workspace · keyboard and pointer input enabled");
+                    status.setText("Gateway page loaded. Sign in and select a "
+                            + "remote connection.");
                 }
             }
         });
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                status.setText("Loading Guacamole gateway…");
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                status.setText("Gateway page loaded. Sign in and select a "
+                        + "remote connection.");
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri destination = request.getUrl();
@@ -120,7 +134,17 @@ public final class RemoteWorkspaceActivity extends Activity {
             public void onReceivedError(WebView view, WebResourceRequest request,
                                         WebResourceError error) {
                 if (request.isForMainFrame()) {
-                    status.setText("Connection failed. Check the server address and network, then Reload.");
+                    status.setText("Gateway connection failed. Check the address "
+                            + "or network, then Reconnect.");
+                }
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request,
+                                            android.webkit.WebResourceResponse response) {
+                if (request.isForMainFrame()) {
+                    status.setText("Gateway returned HTTP " + response.getStatusCode()
+                            + ". Check the server URL and access policy.");
                 }
             }
 
@@ -164,6 +188,14 @@ public final class RemoteWorkspaceActivity extends Activity {
 
     private int dp(float value) {
         return Ui.dp(this, value);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (webView != null) {
+            webView.requestLayout();
+        }
     }
 
     private void disconnect() {

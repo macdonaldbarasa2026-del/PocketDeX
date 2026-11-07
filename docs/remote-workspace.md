@@ -29,7 +29,10 @@ full desktop depending on the host configuration.
 3. Select an available remote connection. Use a hardware keyboard and pointer
    for desktop interaction; the Android device and display must support the
    desired windowed/external-display behavior.
-4. Choose **Disconnect** to stop the page and clear the WebView cookies. Sign
+4. Use **Reconnect** to return to the gateway if its page loses connection.
+   The in-app status line reports gateway page/network errors; it cannot verify
+   the RDP/VNC connection state inside the remote web application.
+5. Choose **Disconnect** to stop the page and clear the WebView cookies. Sign
    out from the Guacamole page first if the server provides a sign-out action.
 
 PocketDeX stores the server URL only. It does not store the Guacamole password
