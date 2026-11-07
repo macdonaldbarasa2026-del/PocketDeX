@@ -150,6 +150,10 @@ new-window affordance is consistent with their separate per-activity state.
 The property only requests a System UI affordance; the OS/device must provide
 desktop windowing and actual launch behavior still follows Android task rules.
 The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
+Remote file downloads use Android's save picker, validate each redirect against
+the configured server origin and obtain the WebView cookie header for the
+current URL at each hop. The redirect target never receives a cookie header
+captured for a different URL.
 `WinlatorRuntime` checks for the separate `com.winlator` app and an ARM64 ABI,
 reports the installed package version, then launches its home screen;
 `RuntimeSession` stores that version with the dispatch record. PocketDeX does

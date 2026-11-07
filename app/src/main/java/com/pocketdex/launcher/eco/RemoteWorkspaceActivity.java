@@ -402,7 +402,7 @@ public final class RemoteWorkspaceActivity extends Activity {
     private void downloadTo(Uri target) {
         final String source = pendingDownloadUrl;
         final String userAgent = webView == null ? null : webView.getSettings().getUserAgentString();
-        final String cookie = source == null ? null : CookieManager.getInstance().getCookie(source);
+        final CookieManager cookieManager = CookieManager.getInstance();
         clearPendingDownload();
         status.setText("Downloading remote file…");
         new Thread(() -> {
@@ -421,6 +421,7 @@ public final class RemoteWorkspaceActivity extends Activity {
                     if (userAgent != null) {
                         connection.setRequestProperty("User-Agent", userAgent);
                     }
+                    String cookie = cookieManager.getCookie(current.toString());
                     if (cookie != null && !cookie.isEmpty()) {
                         connection.setRequestProperty("Cookie", cookie);
                     }

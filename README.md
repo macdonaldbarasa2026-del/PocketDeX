@@ -111,7 +111,8 @@ Local build (requires a desktop Android SDK):
 Remote PC requires an existing Apache Guacamole server configured for RDP or
 VNC. Enter its HTTPS web address in PocketDeX Settings → **Remote PC workspace**.
 See [the remote workspace setup notes](docs/remote-workspace.md) for the
-connection model and security requirements.
+connection model and security requirements. Remote downloads use Android's
+save picker and follow only HTTPS redirects on the configured server origin.
 
 Local Windows execution requires Winlator to be installed separately. See
 [the local compatibility notes](docs/local-windows-runtime.md) for support

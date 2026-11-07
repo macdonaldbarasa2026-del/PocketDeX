@@ -52,12 +52,17 @@ registered provider outside its own package; it does not grant broad storage
 access. Downloads from the configured HTTPS server
 prompt for a destination through Android's system save picker. Redirects are
 limited to the configured server origin, and the session cookie is not sent to a
-different host. The server and Guacamole connection must have file transfer
-enabled for these controls to work.
+different host. For each redirect, PocketDeX obtains the WebView cookie header
+for that exact HTTPS URL, so cookies are selected for that URL rather than
+reusing the initial path's header. The server and Guacamole connection must have
+file transfer enabled for these controls to work.
 The picker uses WebView's documented file chooser callback and validates the
 returned provider and read grant before handing the selected file to the page. See the
 [Android WebView file chooser API](https://developer.android.com/reference/android/webkit/WebChromeClient#onShowFileChooser(android.webkit.WebView,android.webkit.ValueCallback,android.webkit.WebChromeClient.FileChooserParams))
 and [Guacamole file transfer configuration](https://guacamole.apache.org/doc/gug/configuring-guacamole.html#rdp).
+Cookie selection uses Android's [CookieManager URL lookup](https://developer.android.com/reference/android/webkit/CookieManager#getCookie(java.lang.String)),
+which returns cookies for the requested URL; HTTP cookie rules scope cookies by
+request path as well as host ([RFC 6265](https://www.rfc-editor.org/rfc/rfc6265.html#section-5.1.4)).
 
 PocketDeX stores the server URL only. It does not store the Guacamole password
 or remote host credentials. It enables JavaScript and DOM storage because the

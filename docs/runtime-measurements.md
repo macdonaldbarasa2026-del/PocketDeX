@@ -40,6 +40,10 @@ should not be presented as proof that a specific user input was applied.
    of PocketDeX's diagnostic history. Store only bounded session state and
    aggregate timings unless a user explicitly exports diagnostics.
 
+Remote downloads validate every redirect against the configured HTTPS origin.
+They retrieve the WebView cookie header for each validated URL separately and
+do not save or report cookie values in runtime diagnostics.
+
 Apache references: [Guacamole JavaScript client API](https://guacamole.apache.org/doc/guacamole-common-js/Guacamole.Client.html),
 [Guacamole extension capabilities](https://guacamole.apache.org/doc/gug/guacamole-ext.html),
 and [Guacamole protocol synchronization](https://guacamole.apache.org/doc/gug/protocol-reference.html).
