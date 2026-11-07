@@ -70,8 +70,9 @@ any other app, and toggle the desktop ecosystem section in Settings.
   pointer devices, physical mode, maximum app window area and density for usable
   external presentation displays, Android-advertised and kernel-accessible
   memory, a system-wide available-memory snapshot, PocketDeX's approximate app heap class, Android
-  thermal status and forecast, plus Android 16 PocketDeX-process CPU and
-  device-GPU capacity estimates when supported, secondary-display activity
+  thermal status and forecast, the GPU identity reported by Android's Vulkan
+  system driver, plus Android 16 PocketDeX-process CPU and device-GPU capacity
+  estimates when supported, secondary-display activity
   support and whether Android advertises
   freeform window management. Freeform behavior can still
   vary by display and device maker.
@@ -135,6 +136,10 @@ limits and the official download source.
 
 For a separately managed Linux desktop, see Settings or the
 [Linux runtime research](docs/linux-desktop-runtime.md).
+
+For research on Android shared memory compatibility, mobile GPU driver
+translation and off-device native builds, see
+[Android native runtime research](docs/android-native-runtime-research.md).
 
 ## Known limitations
 

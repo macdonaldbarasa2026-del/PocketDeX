@@ -119,6 +119,15 @@ resources as local RAM or local GPU capacity.
    after the runtime boundary exists, with redaction, clear data disclosure and
    user review of every code or shell action.
 
+6. **Native Linux compatibility research:** evaluate shared-memory emulation,
+   graphics translation and NDK cross-compilation as runtime-owned components.
+   PocketDeX now includes an NDK-built Vulkan identity probe for the system
+   driver; it does not inspect Winlator's selected driver. Keep heavy driver
+   builds on GitHub-hosted runners. Do not bundle custom Mesa/Turnip or DXVK
+   binaries in the launcher until a runtime integration, device matrix,
+   artifact provenance, license review and recovery path exist. See
+   [Android native runtime research](../android-native-runtime-research.md).
+
 ## Current foundation
 
 PocketDeX has the desktop launcher, app catalog, external-display presentation,

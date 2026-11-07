@@ -25,6 +25,7 @@ import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
 import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 import com.pocketdex.launcher.runtime.RuntimeSession;
 import com.pocketdex.launcher.runtime.RuntimeSessionStore;
+import com.pocketdex.launcher.runtime.VulkanDeviceProbe;
 import com.pocketdex.launcher.runtime.WinlatorRuntime;
 
 import java.util.concurrent.ExecutorService;
@@ -569,6 +570,7 @@ public class SettingsActivity extends Activity {
                 .append("Desktop setup: ").append(desktopSetup).append("\n")
                 .append("Android API: ").append(profile.androidApi()).append("\n")
                 .append("Supported app ABIs: ").append(abis).append("\n")
+                .append("Vulkan GPU (system driver): checking…\n")
                 .append("Advertised device memory: ").append(advertisedMemory).append("\n")
                 .append("Kernel-accessible RAM: ").append(totalMemory).append("\n")
                 .append("Available to system: ").append(availableMemory)
@@ -598,12 +600,31 @@ public class SettingsActivity extends Activity {
                         + "support may vary. CPU/GPU values are capacity estimates, not "
                         + "benchmark scores. "
                         + "Per-display policy may still ignore window bounds. "
-                        + "App-level performance is not measured.");
+                        + "App-level performance is not measured.\n"
+                        + "Vulkan reports the system driver visible to PocketDeX; it does not "
+                        + "identify the driver selected inside Winlator.");
         for (String displaySummary : profile.externalDisplaySummaries()) {
             details.append('\n').append(displaySummary);
         }
         capabilityDetails.setText(details.toString());
-        requestResourceHeadroomSnapshot(++resourceHeadroomGeneration);
+        int generation = ++resourceHeadroomGeneration;
+        requestVulkanSnapshot(generation);
+        requestResourceHeadroomSnapshot(generation);
+    }
+
+    private void requestVulkanSnapshot(int generation) {
+        RESOURCE_HEADROOM_EXECUTOR.execute(() -> {
+            String vulkan = VulkanDeviceProbe.query();
+            runOnUiThread(() -> {
+                if (generation != resourceHeadroomGeneration || capabilityDetails == null
+                        || isFinishing()) {
+                    return;
+                }
+                capabilityDetails.setText(capabilityDetails.getText().toString()
+                        .replace("Vulkan GPU (system driver): checking…",
+                                "Vulkan GPU (system driver): " + vulkan));
+            });
+        });
     }
 
     private void requestResourceHeadroomSnapshot(int generation) {
