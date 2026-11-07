@@ -78,7 +78,11 @@ resources as local RAM or local GPU capacity.
    reporting. Do not provision cloud compute until provider, cost and
    credentials are explicitly chosen.
 4. **Local compatibility research:** benchmark candidate Linux and Windows
-   runtimes against a published device/app matrix. Ship only after licensing,
+   runtimes against a published device/app matrix. Do not assume Android's
+   Virtualization Framework is an app-accessible desktop VM: AOSP documents
+   platform-signature permission requirements for pVM management, while
+   Microdroid lacks Android Java APIs and graphics/UI. Evaluate user-space
+   emulation and OEM-specific options separately; ship only after licensing,
    security and per-device performance are understood.
 5. **AI-assisted engineering:** add opt-in diagnostics and research summaries
    after the runtime boundary exists, with redaction, clear data disclosure and
@@ -107,3 +111,6 @@ runtime session lifecycle are still future work.
 - [Android desktop windowing](https://developer.android.com/develop/adaptive-apps/guides/support-desktop-windowing)
 - [Android connected displays](https://developer.android.com/develop/adaptive-apps/guides/support-connected-displays)
 - [Android ABI guidance](https://developer.android.com/ndk/guides/abis)
+- [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)
+- [AVF security and pVM permissions](https://source.android.com/docs/core/virtualization/security)
+- [Microdroid capabilities and limitations](https://source.android.com/docs/core/virtualization/microdroid)
