@@ -61,7 +61,8 @@ any other app, and toggle the desktop ecosystem section in Settings.
 - **Desktop setup check** in Settings reports detected physical keyboard and
   pointer devices, active mode and density for usable external presentation
   displays, Android-advertised and kernel-accessible memory, a system-wide
-  available-memory snapshot, secondary-display activity support and whether
+  available-memory snapshot and PocketDeX's approximate app heap class,
+  secondary-display activity support and whether
   Android advertises freeform window management. Freeform behavior can still
   vary by display and device maker.
 - **Multiple built-in workspaces** — on Android 15+ System UI can offer new

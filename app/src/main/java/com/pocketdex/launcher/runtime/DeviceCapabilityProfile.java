@@ -21,6 +21,7 @@ public final class DeviceCapabilityProfile {
     private final long advertisedMemoryBytes;
     private final long totalMemoryBytes;
     private final long availableMemoryBytes;
+    private final int appMemoryClassMb;
     private final boolean lowMemory;
     private final int presentationDisplayCount;
     private final List<String> externalDisplaySummaries;
@@ -32,7 +33,8 @@ public final class DeviceCapabilityProfile {
     private DeviceCapabilityProfile(int androidApi, String manufacturer, String model,
                                     List<String> supportedAbis, long advertisedMemoryBytes,
                                     long totalMemoryBytes,
-                                    long availableMemoryBytes, boolean lowMemory,
+                                    long availableMemoryBytes, int appMemoryClassMb,
+                                    boolean lowMemory,
                                     int presentationDisplayCount,
                                     List<String> externalDisplaySummaries,
                                     boolean secondaryDisplayActivitiesSupported,
@@ -47,6 +49,7 @@ public final class DeviceCapabilityProfile {
         this.advertisedMemoryBytes = advertisedMemoryBytes;
         this.totalMemoryBytes = totalMemoryBytes;
         this.availableMemoryBytes = availableMemoryBytes;
+        this.appMemoryClassMb = appMemoryClassMb;
         this.lowMemory = lowMemory;
         this.presentationDisplayCount = presentationDisplayCount;
         this.externalDisplaySummaries = Collections.unmodifiableList(
@@ -65,6 +68,7 @@ public final class DeviceCapabilityProfile {
         long advertisedMemory = 0L;
         long totalMemory = 0L;
         long availableMemory = 0L;
+        int appMemoryClassMb = 0;
         boolean lowMemory = false;
         ActivityManager activityManager = (ActivityManager)
                 context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -76,6 +80,7 @@ public final class DeviceCapabilityProfile {
             }
             totalMemory = memory.totalMem;
             availableMemory = memory.availMem;
+            appMemoryClassMb = activityManager.getMemoryClass();
             lowMemory = memory.lowMemory;
         }
 
@@ -115,7 +120,8 @@ public final class DeviceCapabilityProfile {
                     || input.supportsSource(InputDevice.SOURCE_STYLUS);
         }
         return new DeviceCapabilityProfile(Build.VERSION.SDK_INT, Build.MANUFACTURER,
-                Build.MODEL, abis, advertisedMemory, totalMemory, availableMemory, lowMemory,
+                Build.MODEL, abis, advertisedMemory, totalMemory, availableMemory,
+                appMemoryClassMb, lowMemory,
                 presentationDisplays, externalDisplaySummaries,
                 secondaryDisplayActivities,
                 freeformWindowManagement, physicalKeyboard, pointer);
@@ -174,6 +180,11 @@ public final class DeviceCapabilityProfile {
 
     public long availableMemoryBytes() {
         return availableMemoryBytes;
+    }
+
+    /** Approximate Android per-app heap class for PocketDeX, in MB. */
+    public int appMemoryClassMb() {
+        return appMemoryClassMb;
     }
 
     public boolean isLowMemory() {

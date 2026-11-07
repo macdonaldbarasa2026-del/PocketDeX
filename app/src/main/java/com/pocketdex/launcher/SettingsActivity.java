@@ -494,6 +494,8 @@ public class SettingsActivity extends Activity {
                         this, profile.advertisedMemoryBytes()) : "not reported";
         String availableMemory = android.text.format.Formatter.formatFileSize(
                 this, profile.availableMemoryBytes());
+        String appMemoryClass = profile.appMemoryClassMb() > 0
+                ? profile.appMemoryClassMb() + " MB (approximate)" : "not reported";
         String desktopSetup = (profile.hasPhysicalKeyboardConnected()
                 ? "Keyboard connected" : "Connect a hardware keyboard") + " · "
                 + (profile.hasPointerConnected()
@@ -510,6 +512,8 @@ public class SettingsActivity extends Activity {
                 .append("Kernel-accessible RAM: ").append(totalMemory).append("\n")
                 .append("Available to system: ").append(availableMemory)
                 .append(" (snapshot; includes reclaimable RAM)\n")
+                .append("PocketDeX app heap class: ").append(appMemoryClass)
+                .append("; not device RAM\n")
                 .append("External presentation displays: ")
                 .append(profile.presentationDisplayCount()).append("\n")
                 .append("Activities on secondary displays: ")
