@@ -12,7 +12,6 @@ public final class GuacamoleWorkspaceConfig {
     public static final String PREFS = "pocketdex_remote";
     public static final String KEY_ENDPOINT = "guacamole_url";
     public static final String KEY_EXTERNAL_DISPLAY = "launch_remote_external_display";
-    public static final String KEY_EXTERNAL_DISPLAY = "launch_remote_external_display";
 
     private GuacamoleWorkspaceConfig() {
     }
@@ -32,19 +31,6 @@ public final class GuacamoleWorkspaceConfig {
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                 .putString(KEY_ENDPOINT, endpoint.toString()).apply();
-    }
-
-    public static boolean launchOnExternalDisplay(Context context) {
-        return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_EXTERNAL_DISPLAY, false);
-    }
-
-    public static void setLaunchOnExternalDisplay(Context context, boolean enabled) {
-        if (context == null) {
-            throw new IllegalArgumentException("context is required");
-        }
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                .putBoolean(KEY_EXTERNAL_DISPLAY, enabled).apply();
     }
 
     public static boolean launchOnExternalDisplay(Context context) {

@@ -51,8 +51,12 @@ public final class RemoteWorkspaceDisplayLauncher {
                 || (display.getFlags() & Display.FLAG_PRIVATE) != 0) {
             return false;
         }
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
-                || ActivityManager.isActivityStartAllowedOnDisplay(context,
-                display.getDisplayId(), intent);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return true;
+        }
+        ActivityManager activityManager = (ActivityManager)
+                context.getSystemService(Context.ACTIVITY_SERVICE);
+        return activityManager != null && activityManager.isActivityStartAllowedOnDisplay(
+                context, display.getDisplayId(), intent);
     }
 }
