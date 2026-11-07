@@ -7,6 +7,7 @@ public final class RuntimeSession {
         DISPATCHED,
         CONNECTING,
         GATEWAY_READY,
+        REMOTE_CONNECTED,
         DEGRADED,
         STOPPED,
         FAILED
@@ -102,13 +103,16 @@ public final class RuntimeSession {
                         || next == State.FAILED;
             case CONNECTING:
                 return next == State.GATEWAY_READY || next == State.DEGRADED
-                        || next == State.STOPPED;
+                        || next == State.REMOTE_CONNECTED || next == State.STOPPED;
             case GATEWAY_READY:
                 return next == State.CONNECTING || next == State.DEGRADED
-                        || next == State.STOPPED;
+                        || next == State.REMOTE_CONNECTED || next == State.STOPPED;
+            case REMOTE_CONNECTED:
+                return next == State.CONNECTING || next == State.GATEWAY_READY
+                        || next == State.DEGRADED || next == State.STOPPED;
             case DEGRADED:
                 return next == State.CONNECTING || next == State.GATEWAY_READY
-                        || next == State.STOPPED;
+                        || next == State.REMOTE_CONNECTED || next == State.STOPPED;
             case STOPPED:
             case FAILED:
             default:

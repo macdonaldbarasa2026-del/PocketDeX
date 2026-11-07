@@ -10,10 +10,13 @@ input processing.
 Apache Guacamole's JavaScript API exposes client state changes and errors. A
 Guacamole client reports a connected state after its tunnel and protocol
 handshake succeed, which is a useful session-level signal when the client is
-instrumented. Guacamole also loads JavaScript supplied by server-side
-extensions. Both mechanisms require code running inside the Guacamole page;
-Android's WebView wrapper does not have that signal when it hosts an arbitrary
-user-managed gateway.
+instrumented. A user-managed gateway can now opt in through the documented
+`PocketDeXRuntime` WebView message contract below. The listener accepts only
+versioned, bounded messages from the configured HTTPS origin's main frame; it
+stores only a coarse connection state and fixed detail text, never connection
+names, credentials, screen data, or arbitrary gateway messages. The signal is
+gateway-reported and is not independently verified by PocketDeX. Without a
+compatible gateway integration, remote connection state remains unavailable.
 
 Input round-trip latency needs a request and a corresponding acknowledgment.
 The normal keyboard and pointer events do not provide a generic acknowledgment
@@ -33,10 +36,13 @@ controlled echo workload.
 ### Safe implementation path
 
 1. Keep the existing HTTPS gateway probe labeled as gateway response time.
-2. If a gateway owner installs a compatible Guacamole extension, let that
-   extension expose connection state and tunnel error events through a
-   documented, versioned page integration. Make the integration opt-in and
-   show “not available” for gateways without it.
+2. A gateway owner can bridge Guacamole's `Client.onstatechange` and
+   `Client.onerror` events to the configured page with
+   `window.PocketDeXRuntime.postMessage(JSON.stringify({version: 1, event:
+   "connection", state: "connected"}))`. Send `connecting`, `disconnected`,
+   or `error` for the corresponding state. PocketDeX accepts this only from
+   the configured HTTPS origin's main frame; show “not available” when no
+   compatible integration is installed.
 3. Add input latency only with a documented acknowledgment method and report
    its measurement scope (client-to-gateway, tunnel round trip, or full remote
    visual response). Do not infer it from a gateway HEAD request or input send
@@ -52,6 +58,10 @@ do not save or report cookie values in runtime diagnostics.
 Apache references: [Guacamole JavaScript client API](https://guacamole.apache.org/doc/guacamole-common-js/Guacamole.Client.html),
 [Guacamole extension capabilities](https://guacamole.apache.org/doc/gug/guacamole-ext.html),
 and [Guacamole protocol synchronization](https://guacamole.apache.org/doc/gug/protocol-reference.html).
+The origin-limited Android message API is documented in the
+[WebViewCompat reference](https://developer.android.com/reference/androidx/webkit/WebViewCompat#addWebMessageListener(android.webkit.WebView,java.lang.String,java.util.Set,androidx.webkit.WebViewCompat.WebMessageListener));
+the Android security guidance recommends origin-aware messaging over a broad
+JavaScript interface for web content that is not authored by the app.
 
 ## Device thermal status
 

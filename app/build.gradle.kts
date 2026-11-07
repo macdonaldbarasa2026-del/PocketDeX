@@ -36,3 +36,7 @@ android {
         abortOnError = false
     }
 }
+
+dependencies {
+    implementation("androidx.webkit:webkit:1.18.0")
+}

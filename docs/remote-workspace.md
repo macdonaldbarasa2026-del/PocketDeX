@@ -40,8 +40,9 @@ full desktop depending on the host configuration.
 4. Use **Reconnect** to return to the gateway if its page loses connection.
    The in-app status line reports gateway page/network errors, and a separate
    measurement reports the HTTPS gateway response time and HTTP status. This
-   probe does not measure RDP/VNC input latency or verify the remote desktop
-   connection state inside Guacamole.
+   probe does not measure RDP/VNC input latency. The remote connection state is
+   shown only when the gateway page has the optional PocketDeX integration
+   below; otherwise PocketDeX reports that state as unavailable.
 5. Choose **Disconnect** to stop the page and clear the WebView cookies. Sign
    out from the Guacamole page first if the server provides a sign-out action.
 
@@ -69,6 +70,29 @@ which returns cookies for the requested URL; HTTP cookie rules scope cookies by
 request path as well as host ([RFC 6265](https://www.rfc-editor.org/rfc/rfc6265.html#section-5.1.4)).
 Android makes the provider app visible to PocketDeX when that URI grant is
 provided, so file selection does not require global package visibility.
+
+### Optional gateway connection status
+
+A gateway administrator can bridge Guacamole client lifecycle events to
+PocketDeX using the origin-limited `PocketDeXRuntime` WebView message object.
+Send only the version, event, and coarse state; do not include credentials,
+connection names, or other session data:
+
+```javascript
+window.PocketDeXRuntime.postMessage(JSON.stringify({
+  version: 1,
+  event: "connection",
+  state: "connected"
+}));
+```
+
+Supported states are `connecting`, `connected`, `disconnected`, and `error`.
+The bridge is available only to the configured HTTPS origin, and messages from
+subframes or other origins are ignored. The label remains explicitly
+gateway-reported because PocketDeX cannot independently verify the gateway's
+claim. This integration does not measure input or display latency. See
+[Guacamole client state events](https://guacamole.apache.org/doc/guacamole-common-js/Guacamole.Client.html#onstatechange)
+and Android's [origin-limited WebView messaging API](https://developer.android.com/reference/androidx/webkit/WebViewCompat#addWebMessageListener(android.webkit.WebView,java.lang.String,java.util.Set,androidx.webkit.WebViewCompat.WebMessageListener)).
 
 PocketDeX stores the server URL only. It does not store the Guacamole password
 or remote host credentials. It enables JavaScript and DOM storage because the

@@ -25,6 +25,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.ValueCallback;
 import android.webkit.URLUtil;
+import androidx.webkit.WebViewCompat;
+import androidx.webkit.WebViewFeature;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -38,8 +40,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.json.JSONObject;
 
 
 /** Remote desktop viewer for a user-managed HTTPS Apache Guacamole server. */
@@ -54,12 +58,17 @@ public final class RemoteWorkspaceActivity extends Activity {
     private WebView webView;
     private TextView status;
     private TextView gatewayMetric;
+    private TextView connectionMetric;
     private TextView fullscreenButton;
     private boolean fullscreenRequested;
     private Uri trustedOrigin;
     private String sessionId;
     private int gatewayProbeGeneration;
     private boolean mainFrameHttpError;
+    private boolean gatewayStatusListenerInstalled;
+    private String gatewayStatusUnavailableMessage =
+            "Remote connection state: gateway integration not detected.";
+    private String lastReportedConnectionState;
     private ValueCallback<Uri[]> pendingFileCallback;
     private String pendingDownloadUrl;
     private String pendingDownloadName;
@@ -135,6 +144,14 @@ public final class RemoteWorkspaceActivity extends Activity {
         root.addView(gatewayMetric, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        connectionMetric = new TextView(this);
+        connectionMetric.setText("Remote connection state: gateway integration not detected.");
+        connectionMetric.setTextColor(DIM);
+        connectionMetric.setTextSize(11);
+        connectionMetric.setPadding(dp(12), 0, dp(12), dp(6));
+        root.addView(connectionMetric, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         webView = new WebView(this);
         webView.setBackgroundColor(Color.BLACK);
         root.addView(webView, new LinearLayout.LayoutParams(
@@ -201,6 +218,7 @@ public final class RemoteWorkspaceActivity extends Activity {
         settings.setSupportMultipleWindows(false);
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
+        installGatewayStatusListener();
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -267,6 +285,11 @@ public final class RemoteWorkspaceActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 mainFrameHttpError = false;
+                lastReportedConnectionState = null;
+                connectionMetric.setText(
+                        gatewayStatusListenerInstalled
+                                ? "Remote connection state: waiting for gateway integration."
+                                : gatewayStatusUnavailableMessage);
                 gatewayProbeGeneration++;
                 gatewayMetric.setText("Gateway response time: checking…");
                 status.setText("Loading Guacamole gateway…");
@@ -278,6 +301,10 @@ public final class RemoteWorkspaceActivity extends Activity {
                 if (!mainFrameHttpError) {
                     status.setText("Gateway page loaded. Sign in and select a "
                             + "remote connection.");
+                    if (gatewayStatusListenerInstalled && lastReportedConnectionState == null) {
+                        connectionMetric.setText(
+                                "Remote connection state: not reported by this gateway.");
+                    }
                 }
             }
 
@@ -332,6 +359,84 @@ public final class RemoteWorkspaceActivity extends Activity {
                         "TLS certificate validation failed.");
             }
         });
+    }
+
+    private void installGatewayStatusListener() {
+        if (trustedOrigin == null
+                || !WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            gatewayStatusUnavailableMessage =
+                    "Remote connection state unavailable: WebView message API unsupported.";
+            connectionMetric.setText(gatewayStatusUnavailableMessage);
+            return;
+        }
+        String authority = trustedOrigin.getAuthority();
+        if (authority == null || authority.isEmpty()) {
+            gatewayStatusUnavailableMessage =
+                    "Remote connection state unavailable: invalid gateway origin.";
+            connectionMetric.setText(gatewayStatusUnavailableMessage);
+            return;
+        }
+        Set<String> allowedOrigins = Collections.singleton("https://" + authority);
+        try {
+            WebViewCompat.addWebMessageListener(webView, "PocketDeXRuntime",
+                    allowedOrigins, (view, message, sourceOrigin, isMainFrame, replyProxy) -> {
+                        if (!isMainFrame || sourceOrigin == null
+                                || !isTrustedOrigin(sourceOrigin)
+                                || message == null || message.getData() == null
+                                || message.getData().length() > 512) {
+                            return;
+                        }
+                        acceptGatewayStatusMessage(message.getData());
+                    });
+            gatewayStatusListenerInstalled = true;
+        } catch (RuntimeException e) {
+            gatewayStatusUnavailableMessage =
+                    "Remote connection state unavailable: WebView integration could not start.";
+            connectionMetric.setText(gatewayStatusUnavailableMessage);
+        }
+    }
+
+    private void acceptGatewayStatusMessage(String data) {
+        try {
+            JSONObject message = new JSONObject(data);
+            if (message.optInt("version", -1) != 1
+                    || !"connection".equals(message.optString("event"))) {
+                return;
+            }
+            String state = message.optString("state");
+            if (!("connecting".equals(state) || "connected".equals(state)
+                    || "disconnected".equals(state) || "error".equals(state))
+                    || state.equals(lastReportedConnectionState)) {
+                return;
+            }
+            lastReportedConnectionState = state;
+            switch (state) {
+                case "connecting":
+                    connectionMetric.setText("Remote connection state: connecting (gateway reported).");
+                    updateSession(RuntimeSession.State.CONNECTING,
+                            "Gateway integration reported a remote connection attempt.");
+                    break;
+                case "connected":
+                    connectionMetric.setText("Remote connection state: connected (gateway reported).");
+                    updateSession(RuntimeSession.State.REMOTE_CONNECTED,
+                            "Gateway integration reported an active remote connection.");
+                    break;
+                case "disconnected":
+                    connectionMetric.setText("Remote connection state: disconnected (gateway reported).");
+                    updateSession(RuntimeSession.State.GATEWAY_READY,
+                            "Gateway integration reported that the remote connection ended.");
+                    break;
+                case "error":
+                    connectionMetric.setText("Remote connection state: error (gateway reported).");
+                    updateSession(RuntimeSession.State.DEGRADED,
+                            "Gateway integration reported a remote connection error.");
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception ignored) {
+            // Ignore malformed or unsupported gateway messages.
+        }
     }
 
     private boolean isTrustedOrigin(Uri candidate) {

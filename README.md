@@ -76,6 +76,10 @@ any other app, and toggle the desktop ecosystem section in Settings.
 - **Multiple built-in workspaces** — on Android 15+ System UI can offer new
   windows for Files, Editor, Terminal and Calculator. Availability depends on
   the device's desktop windowing UI.
+- **Remote PC status** — HTTPS gateway response timing is distinct from remote
+  session state. A gateway administrator may opt in to a versioned,
+  origin-limited Guacamole connection-state message; unsupported gateways are
+  reported as unavailable. Neither signal measures RDP/VNC input latency.
 - **Keyboard & mouse support**:
   - Start / Meta key or Search key: open the Start menu
   - Esc: close the Start menu
