@@ -49,6 +49,15 @@ Termux less CPU time while the regular Termux:X11 app is in front. The optional
 shared-UID APK can avoid that scheduling penalty, but is compatible only with
 the GitHub-signed Termux app.
 
+If Android stops Termux or Termux:X11 after they are backgrounded, check the
+per-app battery controls for both applications. Android's **Unrestricted**
+setting allows more background work and may consume more battery; manufacturer
+policies and device state still affect behavior. This is separate from the
+regular Termux:X11 build's reported CPU-priority slowdown when X11 itself is
+foreground. The shared-UID build is the upstream workaround for that scheduling
+case, but requires the matching GitHub-signed Termux app. Neither setting nor
+build guarantees a particular CPU performance or session lifetime.
+
 This is a Linux userland sharing Android's kernel, CPU, memory, GPU access and
 thermal limits. PRoot is not a hardware virtual machine and does not add
 physical RAM or GPU capacity. Linux GUI support is through the X server; app
@@ -72,6 +81,7 @@ Upstream references:
 - [AOSP Linux development environment use case](https://source.android.com/docs/core/virtualization/usecases)
 - [AOSP AVF security requirements](https://source.android.com/docs/core/virtualization/security)
 - [Android 15 Linux terminal setup on select devices](https://developer.android.com/about/versions/15/release-notes#enable_the_linux_development_environment_on_device_using_developer_options)
+- [Android background power limits and battery settings](https://developer.android.com/topic/performance/power/power-details)
 - [Termux:X11 README and setup guide](https://github.com/termux/termux-x11)
 - [PRoot-Distro README](https://github.com/termux/proot-distro)
 - [Termux RUN_COMMAND intent and permission requirements](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)

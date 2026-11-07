@@ -66,6 +66,8 @@ on select devices. PocketDeX can hand off to its Terminal app when the system
 publishes a launcher activity, but has no supported interface to inspect or
 manage that VM. This state is not included in PocketDeX's runtime session
 measurements.
+PocketDeX also does not observe Termux process survival, OEM background battery
+policy or Linux CPU scheduling; these remain user-managed runtime behaviors.
 
 Android secondary-display feature reporting is only a device capability
 advertisement. `ActivityOptions.setLaunchDisplayId` may still be rejected for a

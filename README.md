@@ -38,7 +38,8 @@ without depending on whatever is installed on the phone:
   device resources; it is not a VM and PocketDeX does not execute Termux
   commands or manage Linux sessions. On select devices, Android also offers a
   separate Debian-based Linux terminal VM in Developer options; it is a
-  command-line environment, not a graphical desktop.
+  command-line environment, not a graphical desktop. Termux/X11 background
+  reliability and CPU scheduling depend on Android and device-maker policies.
 
 Ecosystem apps appear in the Start menu tiles, default taskbar dock, desktop
 grid and the empty-desktop right-click menu. You can pin or unpin them like

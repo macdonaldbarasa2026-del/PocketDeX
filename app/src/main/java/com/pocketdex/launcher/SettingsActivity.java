@@ -440,6 +440,14 @@ public class SettingsActivity extends Activity {
                 "https://github.com/termux/proot-distro"));
         actionButton(linuxCard, "Android Linux development environment", () -> openExternalUrl(
                 "https://source.android.com/docs/core/virtualization/usecases"));
+        actionButton(linuxCard, "Android background and battery guidance", () -> openExternalUrl(
+                "https://developer.android.com/topic/performance/power/power-details"));
+        TextView backgroundNote = subtitleText("If Android stops Termux or Termux:X11 when they are "
+                + "in the background, review their per-app battery settings. Unrestricted mode may "
+                + "use more battery and does not remove the separate-UID CPU scheduling slowdown "
+                + "described by Termux:X11.");
+        backgroundNote.setPadding(0, dp(8), 0, dp(4));
+        linuxCard.addView(backgroundNote);
     }
 
     private void openExternalUrl(String url) {

@@ -104,7 +104,10 @@ resources as local RAM or local GPU capacity.
    for X11 sockets. PocketDeX does not call Termux's external command API:
    Termux requires a special permission and an opt-in setting that permits
    other apps to run commands in its environment. See
-   [Linux desktop setup research](../linux-desktop-runtime.md).
+   [Linux desktop setup research](../linux-desktop-runtime.md), including the
+   distinction between per-app background battery restrictions and Termux:X11's
+   separate-UID CPU scheduling slowdown. PocketDeX does not change battery policy
+   or claim a sustained Linux session/performance guarantee.
 5. **AI-assisted engineering:** add opt-in diagnostics and research summaries
    after the runtime boundary exists, with redaction, clear data disclosure and
    user review of every code or shell action.
