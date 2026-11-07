@@ -43,9 +43,12 @@ import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import com.pocketdex.launcher.eco.EcoApps;
+import com.pocketdex.launcher.eco.Panels;
 
 import java.util.Locale;
 
@@ -75,6 +78,12 @@ public class DesktopView extends FrameLayout {
         void uninstallApp(AppRepo.AppEntry app);
 
         void goHome();
+
+        default void applyFullscreen() {
+        }
+
+        default void pickFilesRoot() {
+        }
     }
 
     private static final int COLOR_TEXT = 0xFFF4F6FB;
@@ -105,6 +114,12 @@ public class DesktopView extends FrameLayout {
     private ScrollView desktopScroll;
     private GridLayout desktopGrid;
 
+    private FrameLayout panelLayer;
+    private final Map<String, Window> windows = new LinkedHashMap<>();
+    private Panels.Panel editorPanel;
+    private Panels.Panel filesPanel;
+    private Panels.Env panelEnv;
+
     private FrameLayout startOverlay;
     private LinearLayout startPanel;
     private GridLayout startGrid;
@@ -125,7 +140,9 @@ public class DesktopView extends FrameLayout {
         @Override
         public void run() {
             updateStatus();
-            handler.postDelayed(this, 1000L);
+            long delay = Prefs.showSeconds(ctx)
+                    ? 1000L : 60_000L - (System.currentTimeMillis() % 60_000L);
+            handler.postDelayed(this, Math.max(250L, delay));
         }
     };
 
@@ -175,6 +192,7 @@ public class DesktopView extends FrameLayout {
     private void buildUi() {
         buildWallpaper();
         buildDesktop();
+        buildPanelLayer();
         buildTaskbar();
         buildStartMenu();
         buildDefaultHint();
@@ -234,12 +252,344 @@ public class DesktopView extends FrameLayout {
         rebuildDesktop();
     }
 
+    private void buildPanelLayer() {
+        panelLayer = new FrameLayout(ctx);
+        panelLayer.setClipChildren(false);
+        addView(panelLayer, new LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        updatePanelLayerPadding();
+    }
+
+    private void updatePanelLayerPadding() {
+        if (panelLayer == null) {
+            return;
+        }
+        LayoutParams params = (LayoutParams) panelLayer.getLayoutParams();
+        params.topMargin = dp(10);
+        params.leftMargin = dp(6);
+        params.rightMargin = dp(6);
+        params.bottomMargin = dp(TASKBAR_HEIGHT_DP + TASKBAR_MARGIN_DP + 8);
+        panelLayer.setLayoutParams(params);
+    }
+
+    private Panels.Env panelEnv() {
+        if (panelEnv != null) {
+            return panelEnv;
+        }
+        panelEnv = new Panels.Env() {
+            @Override
+            public Context context() {
+                return ctx;
+            }
+
+            @Override
+            public Activity activity() {
+                return host.hostContext() instanceof Activity
+                        ? (Activity) host.hostContext() : null;
+            }
+
+            @Override
+            public void runOnUi(Runnable action) {
+                handler.post(action);
+            }
+
+            @Override
+            public void refreshHome() {
+                refresh();
+            }
+
+            @Override
+            public void applyFullscreen() {
+                host.applyFullscreen();
+                updatePanelLayerPadding();
+            }
+
+            @Override
+            public void wallpaper() {
+                host.openWallpaper();
+            }
+
+            @Override
+            public void homeSettings() {
+                host.openHomeSettings();
+            }
+
+            @Override
+            public void openEditor(Uri uri, String name) {
+                openEditorWindow(uri, name);
+            }
+
+            @Override
+            public void pickFilesRoot() {
+                host.pickFilesRoot();
+            }
+
+            @Override
+            public void openWithSystem(Uri uri, String mime) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(uri, mime == null ? "*/*" : mime);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    ctx.startActivity(Intent.createChooser(intent, "Open"));
+                } catch (Exception e) {
+                    Toast.makeText(ctx, "No app can open this", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void toast(String message) {
+                Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
+            }
+        };
+        return panelEnv;
+    }
+
+    private boolean isEcoWindowKey(String key) {
+        return EcoApps.FILES.equals(key) || EcoApps.TERMINAL.equals(key)
+                || EcoApps.CALCULATOR.equals(key) || EcoApps.SETTINGS.equals(key)
+                || EcoApps.EDITOR.equals(key);
+    }
+
+    private void openWindow(String key) {
+        if (!isEcoWindowKey(key)) {
+            return;
+        }
+        if (EcoApps.EDITOR.equals(key)) {
+            openEditorWindow(null, null);
+            return;
+        }
+        Window existing = windows.get(key);
+        if (existing != null) {
+            existing.bringToFront();
+            existing.requestLayout();
+            return;
+        }
+        Panels.Panel panel = Panels.create(key, panelEnv());
+        if (panel == null) {
+            EcoApps.Entry entry = EcoApps.byId(key);
+            if (entry != null) {
+                entry.open(host.hostContext());
+            }
+            return;
+        }
+        if (EcoApps.FILES.equals(key)) {
+            filesPanel = panel;
+        }
+        EcoApps.Entry entry = EcoApps.byId(key);
+        String title = entry != null ? entry.label() : key;
+        addWindow(key, title, panel);
+    }
+
+    private void openEditorWindow(Uri uri, String name) {
+        if (editorPanel != null && editorPanel instanceof Panels.EditorWidget) {
+            ((Panels.EditorWidget) editorPanel).load(uri, name);
+            Window existing = windows.get(EcoApps.EDITOR);
+            if (existing != null) {
+                existing.bringToFront();
+            }
+            return;
+        }
+        Panels.Panel panel = Panels.createEditor(panelEnv(), uri, name);
+        editorPanel = panel;
+        String title = name == null || name.isEmpty() ? "Editor" : name;
+        addWindow(EcoApps.EDITOR, title, panel);
+    }
+
+    private void addWindow(String key, String title, Panels.Panel panel) {
+        if (panelLayer == null) {
+            return;
+        }
+        DisplayMetrics m = metrics();
+        int maxWidth = Math.max(dp(280), Math.round(m.widthPixels * 0.72f));
+        int maxHeight = Math.max(dp(220), Math.round(m.heightPixels * 0.62f));
+        int width = Math.min(maxWidth, dp(560));
+        int height = Math.min(maxHeight, dp(400));
+        int offset = (windows.size() % 5) * dp(26);
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
+        params.gravity = Gravity.TOP | Gravity.START;
+        params.leftMargin = Math.max(dp(4), dp(10) + offset);
+        params.topMargin = dp(10) + offset;
+        panelsTopWindowsMarginLimit(params, m);
+
+        final Window window = new Window(key, title, panel);
+        window.setLayoutParams(params);
+        panelLayer.addView(window);
+        windows.put(key, window);
+        window.bringToFront();
+        window.setTranslationZ(dp(4));
+    }
+
+    private void panelsTopWindowsMarginLimit(FrameLayout.LayoutParams params,
+                                             DisplayMetrics m) {
+        int maxLeft = Math.max(dp(4), m.widthPixels - params.width - dp(20));
+        int maxTop = Math.max(dp(4), m.heightPixels / 2);
+        params.leftMargin = Math.min(params.leftMargin, maxLeft);
+        params.topMargin = Math.min(params.topMargin, maxTop);
+    }
+
+    public void onFilesRootChanged() {
+        handler.post(() -> {
+            if (filesPanel != null && filesPanel instanceof Panels.FilesWidget) {
+                ((Panels.FilesWidget) filesPanel).reload();
+            }
+        });
+    }
+
+    private void closeWindow(Window window) {
+        String key = window.key;
+        windows.remove(key);
+        panelLayer.removeView(window);
+        try {
+            window.panel.destroy();
+        } catch (Exception ignored) {
+        }
+        if (EcoApps.FILES.equals(key)) {
+            filesPanel = null;
+        } else if (EcoApps.EDITOR.equals(key)) {
+            editorPanel = null;
+        }
+    }
+
+    private void closeAllWindows() {
+        for (Window window : new ArrayList<>(windows.values())) {
+            closeWindow(window);
+        }
+    }
+
+    private final class Window extends LinearLayout {
+        final String key;
+        final Panels.Panel panel;
+        final TextView title;
+        final View body;
+        boolean maximized;
+        private FrameLayout.LayoutParams savedParams;
+        private float downRawX;
+        private float downRawY;
+        private int startLeft;
+        private int startTop;
+
+        Window(String key, String titleText, Panels.Panel panel) {
+            super(ctx);
+            this.key = key;
+            this.panel = panel;
+            setOrientation(LinearLayout.VERTICAL);
+            setBackground(Ui.roundedStroke(ctx, COLOR_PANEL, 14,
+                    COLOR_ACCENT, 1));
+            setElevation(dp(10));
+            setClickable(true);
+
+            LinearLayout titleBar = new LinearLayout(ctx);
+            titleBar.setOrientation(LinearLayout.HORIZONTAL);
+            titleBar.setGravity(Gravity.CENTER_VERTICAL);
+            titleBar.setPadding(dp(10), dp(4), dp(4), dp(4));
+            titleBar.setBackground(Ui.rounded(ctx, 0xFF232838, 14));
+
+            title = new TextView(ctx);
+            title.setText(titleText);
+            title.setTextColor(COLOR_TEXT);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            title.setTypeface(Typeface.DEFAULT_BOLD);
+            title.setSingleLine(true);
+            title.setEllipsize(TextUtils.TruncateAt.END);
+            title.setPadding(dp(2), 0, dp(6), 0);
+            titleBar.addView(title, new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+            titleBar.addView(windowButton("□", v -> toggleMaximize()));
+            titleBar.addView(windowButton("✕", v -> closeWindow(Window.this)));
+
+            titleBar.setOnTouchListener((v, event) -> {
+                if (maximized) {
+                    return false;
+                }
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        downRawX = event.getRawX();
+                        downRawY = event.getRawY();
+                        FrameLayout.LayoutParams p =
+                                (FrameLayout.LayoutParams) getLayoutParams();
+                        startLeft = p.leftMargin;
+                        startTop = p.topMargin;
+                        return false;
+                    case MotionEvent.ACTION_MOVE:
+                        FrameLayout.LayoutParams q =
+                                (FrameLayout.LayoutParams) getLayoutParams();
+                        int newLeft = startLeft + Math.round(event.getRawX() - downRawX);
+                        int newTop = startTop + Math.round(event.getRawY() - downRawY);
+                        q.leftMargin = Math.max(0,
+                                Math.min(panelLayer.getWidth() - dp(70), newLeft));
+                        q.topMargin = Math.max(0,
+                                Math.min(panelLayer.getHeight() - dp(36), newTop));
+                        setLayoutParams(q);
+                        return true;
+                    default:
+                        return false;
+                }
+            });
+            titleBar.setOnClickListener(v -> {
+                long now = SystemClock.uptimeMillis();
+                if (lastClickTime > 0 && now - lastClickTime <= 350L) {
+                    lastClickTime = 0L;
+                    toggleMaximize();
+                } else {
+                    lastClickTime = now;
+                }
+            });
+
+            body = panel.view();
+            addView(titleBar, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            addView(body, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        }
+
+        private View windowButton(String label, OnClickListener listener) {
+            TextView button = new TextView(ctx);
+            button.setText(label);
+            button.setTextColor(COLOR_TEXT);
+            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            button.setGravity(Gravity.CENTER);
+            button.setPadding(dp(9), dp(4), dp(9), dp(4));
+            button.setBackground(Ui.ripple(ctx,
+                    Ui.rounded(ctx, Color.TRANSPARENT, 8), 0x44FFFFFF));
+            button.setOnClickListener(listener);
+            return button;
+        }
+
+        void toggleMaximize() {
+            FrameLayout.LayoutParams current =
+                    (FrameLayout.LayoutParams) getLayoutParams();
+            if (maximized) {
+                if (savedParams != null) {
+                    setLayoutParams(savedParams);
+                }
+                maximized = false;
+            } else {
+                savedParams = new FrameLayout.LayoutParams(current.width,
+                        current.height);
+                savedParams.gravity = current.gravity;
+                savedParams.leftMargin = current.leftMargin;
+                savedParams.topMargin = current.topMargin;
+                current.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                current.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                current.leftMargin = 0;
+                current.topMargin = 0;
+                setLayoutParams(current);
+                maximized = true;
+            }
+            requestLayout();
+        }
+    }
+
     private int autoColumns() {
         int width = metrics().widthPixels;
         int columns = width / Math.max(1, dp(84));
         return Math.max(3, Math.min(12, columns));
     }
-
     private void rebuildDesktop() {
         if (desktopGrid == null) {
             return;
@@ -944,6 +1294,9 @@ public class DesktopView extends FrameLayout {
                 str(pinned ? R.string.unpin_desktop : R.string.pin_desktop));
         menu.getMenu().add(0, 5, 4, str(R.string.app_info));
         menu.getMenu().add(0, 6, 5, str(R.string.uninstall));
+        if (target instanceof EcoApps.Entry) {
+            menu.getMenu().add(0, 7, 6, str(R.string.open_fullscreen));
+        }
 
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -966,6 +1319,10 @@ public class DesktopView extends FrameLayout {
                     return true;
                 case 6:
                     host.uninstallApp((AppRepo.AppEntry) target);
+                    return true;
+                case 7:
+                    closeStart();
+                    ((EcoApps.Entry) target).open(host.hostContext());
                     return true;
                 default:
                     return false;
@@ -993,10 +1350,12 @@ public class DesktopView extends FrameLayout {
                     reloadApps();
                     return true;
                 case 3:
-                    EcoApps.byId(EcoApps.FILES).open(host.hostContext());
+                    AppRepo.addRecent(ctx, EcoApps.FILES);
+                    openWindow(EcoApps.FILES);
                     return true;
                 case 4:
-                    EcoApps.byId(EcoApps.TERMINAL).open(host.hostContext());
+                    AppRepo.addRecent(ctx, EcoApps.TERMINAL);
+                    openWindow(EcoApps.TERMINAL);
                     return true;
                 case 5:
                     host.openWallpaper();
@@ -1019,7 +1378,7 @@ public class DesktopView extends FrameLayout {
         closeStart();
         if (item instanceof EcoApps.Entry) {
             AppRepo.addRecent(ctx, item.key());
-            item.open(host.hostContext());
+            openWindow(item.key());
         } else if (item instanceof AppRepo.AppEntry) {
             host.launchApp((AppRepo.AppEntry) item, false);
         }
@@ -1028,7 +1387,10 @@ public class DesktopView extends FrameLayout {
     private void launchWindowed(EcoItem item) {
         recentIndex = -1;
         closeStart();
-        if (item instanceof AppRepo.AppEntry) {
+        if (item instanceof EcoApps.Entry) {
+            AppRepo.addRecent(ctx, item.key());
+            openWindow(item.key());
+        } else if (item instanceof AppRepo.AppEntry) {
             host.launchApp((AppRepo.AppEntry) item, true);
         }
     }
@@ -1087,6 +1449,10 @@ public class DesktopView extends FrameLayout {
         AppRepo.removeListener(appListener);
         unregisterBattery();
         handler.removeCallbacksAndMessages(null);
+        closeAllWindows();
+        panelEnv = null;
+        filesPanel = null;
+        editorPanel = null;
     }
 
     @Override

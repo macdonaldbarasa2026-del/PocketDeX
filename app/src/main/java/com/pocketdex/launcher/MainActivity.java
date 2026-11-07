@@ -29,6 +29,7 @@ public class MainActivity extends Activity implements DesktopView.Host {
     private DesktopPresentation presentation;
     private DisplayManager displayManager;
     private int cascade;
+    private static final int RC_ECO_FILES_ROOT = 71;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -152,6 +153,28 @@ public class MainActivity extends Activity implements DesktopView.Host {
             return;
         }
         moveTaskToBack(true);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_ECO_FILES_ROOT && resultCode == RESULT_OK
+                && data != null) {
+            com.pocketdex.launcher.eco.FilesActivity.handleTreeResult(this, data);
+            if (desktop != null) {
+                desktop.onFilesRootChanged();
+            }
+        }
+    }
+
+    @Override
+    public void applyFullscreen() {
+        applySystemUi();
+    }
+
+    @Override
+    public void pickFilesRoot() {
+        com.pocketdex.launcher.eco.FilesActivity.pickRoot(this, RC_ECO_FILES_ROOT);
     }
 
     @Override

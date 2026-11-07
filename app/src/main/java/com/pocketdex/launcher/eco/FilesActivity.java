@@ -184,7 +184,7 @@ public class FilesActivity extends Activity {
         loadDirectory(DocumentsContract.getTreeDocumentId(treeUri), "Storage");
     }
 
-    static void pickRoot(Activity activity, int requestCode) {
+    public static void pickRoot(Activity activity, int requestCode) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         try {

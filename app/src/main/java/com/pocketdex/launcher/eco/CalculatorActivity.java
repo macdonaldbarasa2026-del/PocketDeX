@@ -183,7 +183,7 @@ public class CalculatorActivity extends Activity {
     }
 
     private static double evaluate(String source) throws Exception {
-        return new Parser(source).parseExpression();
+        return ExpEval.evaluate(source);
     }
 
     private static final class Parser {

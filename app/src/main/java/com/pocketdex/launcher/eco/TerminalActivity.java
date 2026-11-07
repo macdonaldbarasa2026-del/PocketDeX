@@ -5,8 +5,8 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
-import android.view.View;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -16,33 +16,22 @@ import android.widget.Toast;
 
 import com.pocketdex.launcher.Ui;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.util.Arrays;
-import java.util.concurrent.locks.ReentrantLock;
-
-public class TerminalActivity extends Activity {
+public class TerminalActivity extends Activity implements ShellEngine.Listener {
 
     private static final int BG = 0xFF0B0D12;
-    private static final int CARD = 0xFF171A24;
     private static final int TEXT = 0xFFF4F6FB;
     private static final int DIM = 0xFF9AA3B5;
     private static final int ACCENT = 0xFF4C8DFF;
 
     private static final String BANNER =
-            "PocketDeX Terminal — /system/bin/sh\n$ ";
+            "PocketDeX Terminal — /system/bin/sh (per-command mode)\n";
 
     private LinearLayout root;
     private ScrollView scroll;
     private TextView output;
-    private EditText input;
     private TextView prompt;
-    private TextView runButton;
-
-    private Process process;
-    private OutputStreamWriter stdin;
-    private final ReentrantLock stdinLock = new ReentrantLock();
+    private EditText input;
+    private ShellEngine engine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +39,9 @@ public class TerminalActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
-        startShell();
+        engine = new ShellEngine(this);
+        appendBanner();
+        updatePrompt();
     }
 
     private View buildUi() {
@@ -63,18 +54,17 @@ public class TerminalActivity extends Activity {
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(10), dp(10), dp(10), dp(10));
 
-        header.addView(quickButton("Back", v -> finish()),
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, dp(34)));
-        header.addView(quickButton("Ctrl+C", v -> sendControlC()),
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, dp(34)));
-        header.addView(quickButton("Clear", v -> clearOutput()),
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, dp(34)));
-        header.addView(quickButton("Kill", v -> killShell()),
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, dp(34)));
+        header.addView(quickButton("Back", v -> finish()));
+        header.addView(quickButton("Stop", v -> {
+            if (engine.busy()) {
+                engine.stop();
+                appendText("[stopped]\n");
+            } else {
+                Toast.makeText(this, "Nothing running", Toast.LENGTH_SHORT).show();
+            }
+        }));
+        header.addView(quickButton("Clear", v -> clearOutput()));
+        header.addView(quickButton("Help", v -> showHelp()));
         root.addView(header);
 
         View divider = new View(this);
@@ -86,7 +76,6 @@ public class TerminalActivity extends Activity {
         output.setTextColor(TEXT);
         output.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         output.setTypeface(Typeface.MONOSPACE);
-        output.setText(BANNER);
         output.setPadding(dp(10), dp(10), dp(10), dp(16));
         output.setTextIsSelectable(true);
 
@@ -105,10 +94,10 @@ public class TerminalActivity extends Activity {
         inputRow.setPadding(dp(10), dp(6), dp(10), dp(6));
 
         prompt = new TextView(this);
-        prompt.setText("$ ");
         prompt.setTextColor(ACCENT);
-        prompt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        prompt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         prompt.setTypeface(Typeface.MONOSPACE);
+        prompt.setSingleLine(true);
         prompt.setPadding(0, 0, dp(4), 0);
         inputRow.addView(prompt, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -117,7 +106,7 @@ public class TerminalActivity extends Activity {
         input = new EditText(this);
         input.setTextColor(TEXT);
         input.setHintTextColor(DIM);
-        input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         input.setTypeface(Typeface.MONOSPACE);
         input.setSingleLine(true);
         input.setBackgroundColor(Color.TRANSPARENT);
@@ -132,9 +121,7 @@ public class TerminalActivity extends Activity {
         inputRow.addView(input, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        runButton = quickButton("Run", v -> runInput());
-        inputRow.addView(runButton, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, dp(34)));
+        inputRow.addView(quickButton("Run", v -> runInput()));
         root.addView(inputRow);
 
         LinearLayout quickRow = new LinearLayout(this);
@@ -145,7 +132,7 @@ public class TerminalActivity extends Activity {
         quickRow.addView(quickButton("pwd", v -> type("pwd")));
         quickRow.addView(quickButton("cd ~", v -> type("cd ~")));
         quickRow.addView(quickButton("whoami", v -> type("whoami")));
-        quickRow.addView(quickButton("top -n 1", v -> type("top -n 1")));
+        quickRow.addView(quickButton("uname -a", v -> type("uname -a")));
         root.addView(quickRow);
 
         return root;
@@ -173,120 +160,92 @@ public class TerminalActivity extends Activity {
         return Ui.dp(this, value);
     }
 
-    private void startShell() {
-        try {
-            ProcessBuilder builder = new ProcessBuilder(Arrays.asList("/system/bin/sh"));
-            builder.redirectErrorStream(true);
-            builder.directory(getFilesDir());
-            process = builder.start();
-            stdin = new OutputStreamWriter(process.getOutputStream());
-        } catch (IOException e) {
-            appendText("Unable to start shell: " + e.getMessage() + "\n");
-            return;
-        }
-
-        Thread reader = new Thread(() -> {
-            try (InputStream in = process.getInputStream()) {
-                byte[] buffer = new byte[4096];
-                int read;
-                while ((read = in.read(buffer)) > 0) {
-                    final String chunk = new String(buffer, 0, read);
-                    runOnUiThread(() -> appendText(chunk));
-                }
-            } catch (IOException ignored) {
-            }
-        }, "PocketDeX-shell-reader");
-        reader.setDaemon(true);
-        reader.start();
-    }
-
-    private void runInput() {
-        String command = input.getText().toString();
-        if (process == null) {
-            startShell();
-            if (process == null) {
-                return;
-            }
-        }
-        appendText(command + "\n");
-        try {
-            stdinLock.lock();
-            try {
-                stdin.write(command + "\n");
-                stdin.flush();
-            } finally {
-                stdinLock.unlock();
-            }
-        } catch (IOException | NullPointerException e) {
-            appendText("shell is not running\n");
-            return;
-        }
-        input.setText("");
-    }
-
-    private void type(String command) {
-        input.setText(command);
-        input.setSelection(command.length());
-        runInput();
-    }
-
-    private void appendText(String text) {
-        String current = output.getText().toString();
-        output.setText(current + text);
-    }
-
-    private void clearOutput() {
+    private void appendBanner() {
         output.setText(BANNER);
         scroll.fullScroll(ScrollView.FOCUS_DOWN);
     }
 
-    private void sendControlC() {
-        try {
-            stdinLock.lock();
-            try {
-                stdin.write('\u0003');
-                stdin.flush();
-            } finally {
-                stdinLock.unlock();
-            }
-        } catch (Exception e) {
-            appendText("\n(no running process)\n");
-        }
+    private void showHelp() {
+        appendText("\nhelp: type a command and press Run or Enter.\n"
+                + "cd           go to /storage/emulated/0\n"
+                + "cd ../..     relative paths work\n"
+                + "Stop         kill the running command\n");
     }
 
-    private void killShell() {
-        if (process != null) {
-            process.destroy();
-            process = null;
-            stdin = null;
+    private void runInput() {
+        String command = input.getText().toString();
+        input.setText("");
+        type(command);
+    }
+
+    private void type(String command) {
+        String trimmed = command == null ? "" : command.trim();
+        if (trimmed.isEmpty()) {
+            return;
         }
-        appendText("shell killed\n");
-        Toast.makeText(this, "Shell closed", Toast.LENGTH_SHORT).show();
-        startShell();
+        if (engine.busy()) {
+            Toast.makeText(this, "A command is running — Stop it first",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        appendText(promptText() + " " + trimmed + "\n");
+        engine.run(trimmed);
+        scroll.fullScroll(ScrollView.FOCUS_DOWN);
+    }
+
+    private void appendText(String text) {
+        output.append(text);
+        scroll.fullScroll(ScrollView.FOCUS_DOWN);
+    }
+
+    private void clearOutput() {
+        appendBanner();
+        updatePrompt();
+    }
+
+    private String promptText() {
+        String path = engine.cwd();
+        String shortPath;
+        if (path.equals("/")) {
+            shortPath = "/";
+        } else {
+            int cut = path.lastIndexOf('/');
+            shortPath = path.substring(cut + 1) + " >";
+        }
+        return shortPath + " $";
+    }
+
+    private void updatePrompt() {
+        prompt.setText(promptText());
+    }
+
+    @Override
+    public void onOutput(String text) {
+        appendText(text);
+    }
+
+    @Override
+    public void onPrompt(String cwd) {
+        updatePrompt();
+    }
+
+    @Override
+    public void onDone(String command, int exitCode) {
+        appendText("[exit " + exitCode + "]\n");
+        updatePrompt();
+    }
+
+    @Override
+    public void onError(String message) {
+        appendText(message + "\n");
     }
 
     @Override
     protected void onDestroy() {
-        if (process != null) {
-            process.destroy();
-            process = null;
+        if (engine != null) {
+            engine.shutdown();
+            engine = null;
         }
-        stdin = null;
         super.onDestroy();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (killRequestedOnBack()) {
-            return;
-        }
-        super.onBackPressed();
-    }
-
-    private boolean killRequestedOnBack() {
-        if (process != null && process.isAlive()) {
-            process.destroy();
-        }
-        return false;
     }
 }
