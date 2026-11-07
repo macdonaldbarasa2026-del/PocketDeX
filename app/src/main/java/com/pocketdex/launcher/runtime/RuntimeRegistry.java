@@ -14,6 +14,7 @@ public final class RuntimeRegistry {
     public RuntimeRegistry() {
         register(new AndroidAppRuntime());
         register(new GuacamoleRuntime());
+        register(new WinlatorRuntime());
     }
 
     public static RuntimeRegistry getDefault() {

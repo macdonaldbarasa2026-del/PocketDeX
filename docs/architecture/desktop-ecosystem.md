@@ -70,15 +70,16 @@ resources as local RAM or local GPU capacity.
 2. **Runtime boundary:** add `AppDescriptor`, `SupportReport`,
    `DeviceCapabilityProfile` and `RuntimeProvider`; route Android launches
    through `AndroidAppRuntime` and allow providers to register by runtime id.
-   This boundary now has Android and Guacamole providers; runtime lifecycle
-   sessions and provider event reporting remain to be added.
+   This boundary now has Android, Guacamole and Winlator providers; runtime
+   lifecycle sessions and provider event reporting remain to be added.
 3. **Remote workspace prototype:** the first client is implemented through a
    user-managed HTTPS Apache Guacamole web application, with server-side RDP or
    VNC bridging. Next add provider/session lifecycle, reconnect and latency
    reporting. Do not provision cloud compute until provider, cost and
    credentials are explicitly chosen.
-4. **Local compatibility research:** benchmark candidate Linux and Windows
-   runtimes against a published device/app matrix. Do not assume Android's
+4. **Local compatibility research:** PocketDeX now detects and launches the
+   separately installed Winlator app on ARM64 devices. Next add per-app
+   shortcuts and benchmark a published device/app matrix. Do not assume Android's
    Virtualization Framework is an app-accessible desktop VM: AOSP documents
    platform-signature permission requirements for pVM management, while
    Microdroid lacks Android Java APIs and graphics/UI. Evaluate user-space
@@ -101,8 +102,10 @@ supported ABIs, system memory state and connected presentation displays for
 runtime decisions and is visible in Settings as a refreshable device details
 card. This snapshot stays local; it does not claim to measure GPU performance
 or predict app compatibility. The registry can accept additional providers.
-The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions,
-but direct local Linux/Windows providers, native per-app remote windows and
+The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
+`WinlatorRuntime` checks for the separate `com.winlator` app and an ARM64 ABI,
+then launches its home screen; PocketDeX does not yet import individual Windows
+shortcuts or manage Winlator containers. Native per-app remote windows and
 runtime session lifecycle are still future work.
 
 ## Platform references
@@ -114,3 +117,6 @@ runtime session lifecycle are still future work.
 - [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)
 - [AVF security and pVM permissions](https://source.android.com/docs/core/virtualization/security)
 - [Microdroid capabilities and limitations](https://source.android.com/docs/core/virtualization/microdroid)
+- [Winlator Android app and compatibility notes](https://github.com/brunodev85/winlator)
+- [Winlator app ABI/build configuration](https://github.com/brunodev85/winlator-app/blob/main/app/build.gradle)
+- [Box64 architecture and platform requirements](https://github.com/ptitSeb/box64)

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.pocketdex.launcher.eco.EcoApps;
 import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
 import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
+import com.pocketdex.launcher.runtime.WinlatorRuntime;
 
 public class SettingsActivity extends Activity {
 
@@ -63,6 +64,7 @@ public class SettingsActivity extends Activity {
         buildAppearance();
         buildEcosystem();
         buildRemoteWorkspace();
+        buildLocalWindowsRuntime();
         buildCapabilities();
         buildBehavior();
         buildHome();
@@ -371,6 +373,24 @@ public class SettingsActivity extends Activity {
             }
             GuacamoleWorkspaceConfig.saveEndpoint(this, normalized);
             EcoApps.byId(EcoApps.REMOTE_PC).open(this);
+        });
+    }
+
+    private void buildLocalWindowsRuntime() {
+        section("Local Windows runtime");
+        LinearLayout runtimeCard = card();
+        TextView description = subtitleText("Winlator can run some x86-64 Windows apps locally "
+                + "using Wine and Box64. It requires a 64-bit ARM device and is installed separately.");
+        description.setPadding(0, dp(10), 0, dp(8));
+        runtimeCard.addView(description);
+        actionButton(runtimeCard, "Open official Winlator releases", () -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        android.net.Uri.parse(WinlatorRuntime.RELEASES_URL)));
+            } catch (Exception e) {
+                android.widget.Toast.makeText(this, "Unable to open Winlator releases",
+                        android.widget.Toast.LENGTH_SHORT).show();
+            }
         });
     }
 

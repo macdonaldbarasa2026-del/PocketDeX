@@ -12,6 +12,7 @@ import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 import com.pocketdex.launcher.runtime.RuntimeProvider;
 import com.pocketdex.launcher.runtime.RuntimeRegistry;
 import com.pocketdex.launcher.runtime.SupportReport;
+import com.pocketdex.launcher.runtime.WinlatorRuntime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ public final class EcoApps {
     public static final String TERMINAL = "eco:terminal";
     public static final String CALCULATOR = "eco:calculator";
     public static final String REMOTE_PC = "eco:remote_pc";
+    public static final String LOCAL_WINDOWS = "eco:local_windows";
     public static final String SETTINGS = "eco:settings";
 
     private EcoApps() {
@@ -61,8 +63,8 @@ public final class EcoApps {
 
         @Override
         public void open(Context c) {
-            if (REMOTE_PC.equals(id)) {
-                openRemoteWorkspace(c);
+            if (REMOTE_PC.equals(id) || LOCAL_WINDOWS.equals(id)) {
+                openRuntimeItem(c);
                 return;
             }
             Intent intent = activity != null
@@ -76,13 +78,18 @@ public final class EcoApps {
             }
         }
 
-        private void openRemoteWorkspace(Context c) {
-            AppDescriptor app = new AppDescriptor(GuacamoleWorkspaceConfig.APP_ID,
-                    name, GuacamoleWorkspaceConfig.RUNTIME_ID, "workspace");
+        private void openRuntimeItem(Context c) {
+            boolean localWindows = LOCAL_WINDOWS.equals(id);
+            String runtimeId = localWindows
+                    ? WinlatorRuntime.RUNTIME_ID : GuacamoleWorkspaceConfig.RUNTIME_ID;
+            String appId = localWindows
+                    ? WinlatorRuntime.APP_ID : GuacamoleWorkspaceConfig.APP_ID;
+            AppDescriptor app = new AppDescriptor(appId, name, runtimeId,
+                    localWindows ? "winlator-home" : "workspace");
             RuntimeProvider runtime = RuntimeRegistry.getDefault()
-                    .find(GuacamoleWorkspaceConfig.RUNTIME_ID);
+                    .find(runtimeId);
             if (runtime == null) {
-                Toast.makeText(c, "Remote workspace runtime is unavailable",
+                Toast.makeText(c, name + " runtime is unavailable",
                         Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -95,7 +102,7 @@ public final class EcoApps {
                 }
                 runtime.launch(c, app, capabilities);
             } catch (Exception e) {
-                Toast.makeText(c, "Unable to open remote workspace",
+                Toast.makeText(c, "Unable to open " + name,
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -112,6 +119,8 @@ public final class EcoApps {
         list.add(new Entry(CALCULATOR, "Calculator", R.drawable.ic_calc, CalculatorActivity.class));
         list.add(new Entry(REMOTE_PC, "Remote PC", R.drawable.ic_remote_pc,
                 RemoteWorkspaceActivity.class));
+        list.add(new Entry(LOCAL_WINDOWS, "Local Windows", R.drawable.ic_windows,
+                null));
         list.add(new Entry(SETTINGS, "Settings", R.drawable.ic_settings, null));
         ENTRIES = list;
 

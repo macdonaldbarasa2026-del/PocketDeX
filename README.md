@@ -26,6 +26,8 @@ without depending on whatever is installed on the phone:
 - **Remote PC** — connect to a user-managed Apache Guacamole HTTPS gateway for
   remote RDP/VNC desktops. PocketDeX displays the remote session; the PC runs
   on the configured remote host.
+- **Local Windows** — launch the separately installed Winlator runtime on
+  supported 64-bit ARM devices to run compatible x86-64 Windows applications.
 
 Ecosystem apps appear in the Start menu tiles, default taskbar dock, desktop
 grid and the empty-desktop right-click menu. You can pin or unpin them like
@@ -84,6 +86,10 @@ Remote PC requires an existing Apache Guacamole server configured for RDP or
 VNC. Enter its HTTPS web address in PocketDeX Settings → **Remote PC workspace**.
 See [the remote workspace setup notes](docs/remote-workspace.md) for the
 connection model and security requirements.
+
+Local Windows execution requires Winlator to be installed separately. See
+[the local compatibility notes](docs/local-windows-runtime.md) for support
+limits and the official download source.
 
 ## Known limitations
 
