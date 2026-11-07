@@ -63,6 +63,8 @@ and [Guacamole file transfer configuration](https://guacamole.apache.org/doc/gug
 Cookie selection uses Android's [CookieManager URL lookup](https://developer.android.com/reference/android/webkit/CookieManager#getCookie(java.lang.String)),
 which returns cookies for the requested URL; HTTP cookie rules scope cookies by
 request path as well as host ([RFC 6265](https://www.rfc-editor.org/rfc/rfc6265.html#section-5.1.4)).
+Android makes the provider app visible to PocketDeX when that URI grant is
+provided, so file selection does not require global package visibility.
 
 PocketDeX stores the server URL only. It does not store the Guacamole password
 or remote host credentials. It enables JavaScript and DOM storage because the

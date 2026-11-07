@@ -82,6 +82,9 @@ any other app, and toggle the desktop ecosystem section in Settings.
   double-tap to launch, taskbar fade, fullscreen, clock seconds and external
   desktop toggle.
 - **Live updates**: package install/uninstall broadcasts refresh the app list.
+- **Limited app visibility**: the launcher queries apps with launcher activities
+  and declares Winlator by package; it does not request visibility of every
+  installed package.
 - **Set as default home**: press Home and choose PocketDeX.
 
 ## Install

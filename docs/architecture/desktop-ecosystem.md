@@ -110,6 +110,10 @@ resources as local RAM or local GPU capacity.
 
 PocketDeX has the desktop launcher, app catalog, external-display presentation,
 built-in Files/Editor/Terminal/Calculator apps and Android app launch path. The
+manifest limits package visibility to apps matching the launcher intent and an
+explicit query for Winlator, instead of requesting visibility of all installed
+packages. File-picker URI grants make the selected document provider visible
+when PocketDeX validates the returned upload URI.
 Android launch path now goes through `AppDescriptor`, `RuntimeProvider`,
 `RuntimeRegistry` and `AndroidAppRuntime`, which reports whether an app is
 ready, missing, disabled or invalid. `GuacamoleRuntime` checks whether the
@@ -216,6 +220,7 @@ the receiving app; each target must accept and request the temporary grant.
 - [Android multi-window drag-and-drop](https://developer.android.com/develop/ui/views/touch-and-input/drag-drop/multi-window)
 - [Android global URI drag flags](https://developer.android.com/reference/android/view/View#DRAG_FLAG_GLOBAL_URI_READ)
 - [Android secondary-display activity feature](https://developer.android.com/reference/android/content/pm/PackageManager#FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)
+- [Android package visibility declarations](https://developer.android.com/training/package-visibility/declaring)
 - [Android ABI guidance](https://developer.android.com/ndk/guides/abis)
 - [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)
 - [AVF security and pVM permissions](https://source.android.com/docs/core/virtualization/security)

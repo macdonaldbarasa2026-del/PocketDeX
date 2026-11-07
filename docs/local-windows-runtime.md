@@ -19,6 +19,9 @@ package and device ABI, reports the installed package version, then opens
 Winlator's exported launcher activity. The local dispatch history records
 that version, but cannot observe container or Windows app health. The Windows
 application setup and compatibility controls remain in Winlator.
+The package is listed explicitly in Android's package-visibility queries; the
+launcher does not need broad visibility of unrelated installed apps to detect
+this optional runtime.
 
 The [upstream Android manifest](https://github.com/brunodev85/winlator-app/blob/main/app/src/main/AndroidManifest.xml)
 currently exports `MainActivity`, while `XServerDisplayActivity` and the
