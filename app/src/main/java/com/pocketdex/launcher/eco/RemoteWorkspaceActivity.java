@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -42,7 +43,9 @@ public final class RemoteWorkspaceActivity extends Activity {
 
     private WebView webView;
     private TextView status;
+    private TextView gatewayMetric;
     private Uri trustedOrigin;
+    private int gatewayProbeGeneration;
     private ValueCallback<Uri[]> pendingFileCallback;
     private String pendingDownloadUrl;
     private String pendingDownloadName;
@@ -57,6 +60,7 @@ public final class RemoteWorkspaceActivity extends Activity {
         Uri endpoint = GuacamoleWorkspaceConfig.endpoint(this);
         if (endpoint == null) {
             status.setText("Set an HTTPS Guacamole server in PocketDeX Settings.");
+            gatewayMetric.setText("Gateway response time unavailable: no server configured.");
             return;
         }
         trustedOrigin = endpoint;
@@ -88,6 +92,14 @@ public final class RemoteWorkspaceActivity extends Activity {
         status.setTextSize(12);
         status.setPadding(dp(12), dp(6), dp(12), dp(6));
         root.addView(status, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        gatewayMetric = new TextView(this);
+        gatewayMetric.setText("Gateway response time: waiting for server…");
+        gatewayMetric.setTextColor(DIM);
+        gatewayMetric.setTextSize(11);
+        gatewayMetric.setPadding(dp(12), 0, dp(12), dp(6));
+        root.addView(gatewayMetric, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         webView = new WebView(this);
@@ -174,6 +186,8 @@ public final class RemoteWorkspaceActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                gatewayProbeGeneration++;
+                gatewayMetric.setText("Gateway response time: checking…");
                 status.setText("Loading Guacamole gateway…");
             }
 
@@ -181,6 +195,11 @@ public final class RemoteWorkspaceActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 status.setText("Gateway page loaded. Sign in and select a "
                         + "remote connection.");
+            }
+
+            @Override
+            public void onPageCommitVisible(WebView view, String url) {
+                probeGatewayResponseTime();
             }
 
             @Override
@@ -238,6 +257,43 @@ public final class RemoteWorkspaceActivity extends Activity {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void probeGatewayResponseTime() {
+        if (trustedOrigin == null || gatewayMetric == null) {
+            return;
+        }
+        final int generation = ++gatewayProbeGeneration;
+        final String endpoint = trustedOrigin.toString();
+        gatewayMetric.setText("Gateway response time: measuring…");
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            final String result;
+            long start = SystemClock.elapsedRealtime();
+            try {
+                connection = (HttpURLConnection) new URL(endpoint).openConnection();
+                connection.setRequestMethod("HEAD");
+                connection.setInstanceFollowRedirects(false);
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
+                int responseCode = connection.getResponseCode();
+                long elapsed = SystemClock.elapsedRealtime() - start;
+                result = "Gateway response: " + elapsed + " ms (HTTP "
+                        + responseCode + "). This does not measure the remote desktop session.";
+            } catch (Exception e) {
+                result = "Gateway response time unavailable. Check the server or network.";
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed() && gatewayMetric != null
+                        && generation == gatewayProbeGeneration) {
+                    gatewayMetric.setText(result);
+                }
+            });
+        }, "pocketdex-gateway-probe").start();
     }
 
     private String safeDownloadName(String name) {
@@ -428,6 +484,7 @@ public final class RemoteWorkspaceActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        gatewayProbeGeneration++;
         clearPendingDownload();
         finishFileChooser(null);
         if (webView != null) {

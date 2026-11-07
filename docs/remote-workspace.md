@@ -30,8 +30,10 @@ full desktop depending on the host configuration.
    for desktop interaction; the Android device and display must support the
    desired windowed/external-display behavior.
 4. Use **Reconnect** to return to the gateway if its page loses connection.
-   The in-app status line reports gateway page/network errors; it cannot verify
-   the RDP/VNC connection state inside the remote web application.
+   The in-app status line reports gateway page/network errors, and a separate
+   measurement reports the HTTPS gateway response time and HTTP status. This
+   probe does not measure RDP/VNC input latency or verify the remote desktop
+   connection state inside Guacamole.
 5. Choose **Disconnect** to stop the page and clear the WebView cookies. Sign
    out from the Guacamole page first if the server provides a sign-out action.
 
@@ -61,6 +63,9 @@ configured HTTPS origin.
 - Responsiveness depends on the network route, server load, encoding and phone
   display. PocketDeX does not guarantee a particular latency or application
   compatibility.
+- The gateway response-time probe is a single HTTPS HEAD request to the
+  configured gateway. It does not represent frame delivery, input round-trip
+  time, or the health of a selected RDP/VNC connection.
 - This first client displays the Guacamole web app in a resizable Android
   activity. It does not yet expose native per-application windows, a mounted
   remote filesystem, host setup, or provider-side resource management.
