@@ -55,9 +55,14 @@ any other app, and toggle the desktop ecosystem section in Settings.
   (wallpaper, default-home settings, PocketDeX settings).
 - **Taskbar** with Start button, pinned apps, recent apps, clock/date, battery,
   network status and a settings shortcut.
-- **Windowed launching** through Android freeform window bounds where the device
-  supports it (fallback: normal fullscreen). Built-in apps request usable
-  default sizes, and Remote PC can open as a separate system window.
+- **Windowed launching** for Android apps by default through Android freeform
+  window bounds where the device supports it (fallback: normal fullscreen).
+  Turn it off in Settings or choose **Open fullscreen** per app. Remote PC can
+  open as a separate system window.
+- **PocketDeX app windows** — built-in Files, Editor, Terminal, Calculator and
+  Settings open as movable in-desktop windows with minimize/restore, maximize
+  and close controls. Other Android apps are launched as Android-managed
+  windows when supported; Android retains control of those app windows.
 - **External display desktop** over HDMI / USB-C using a second `Presentation`
   desktop, and per-app "Open on external display".
 - Per-app external-display launches follow Android's device and display policy;
@@ -140,6 +145,8 @@ For a separately managed Linux desktop, see Settings or the
 For research on Android shared memory compatibility, mobile GPU driver
 translation and off-device native builds, see
 [Android native runtime research](docs/android-native-runtime-research.md).
+For the Android app embedding limits, window behavior and remote `.exe` transfer
+path, see [Android app windowing research](docs/android-app-windowing.md).
 
 ## Known limitations
 

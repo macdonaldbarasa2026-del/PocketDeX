@@ -54,6 +54,10 @@ public final class Prefs {
         return get(c).getBoolean("external_display", true);
     }
 
+    public static boolean windowedApps(Context c) {
+        return get(c).getBoolean("windowed_apps", true);
+    }
+
     public static boolean showEcoOnDesktop(Context c) {
         return get(c).getBoolean("eco_desktop", true);
     }

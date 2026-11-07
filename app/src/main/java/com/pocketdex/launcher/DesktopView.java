@@ -368,6 +368,7 @@ public class DesktopView extends FrameLayout {
         }
         Window existing = windows.get(key);
         if (existing != null) {
+            existing.setVisibility(VISIBLE);
             existing.bringToFront();
             existing.requestLayout();
             return;
@@ -393,6 +394,7 @@ public class DesktopView extends FrameLayout {
             ((Panels.EditorWidget) editorPanel).load(uri, name);
             Window existing = windows.get(EcoApps.EDITOR);
             if (existing != null) {
+                existing.setVisibility(VISIBLE);
                 existing.bringToFront();
             }
             return;
@@ -504,7 +506,10 @@ public class DesktopView extends FrameLayout {
             titleBar.addView(title, new LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-            titleBar.addView(windowButton("□", v -> toggleMaximize()));
+            titleBar.addView(windowButton("—", "Minimize " + titleText,
+                    v -> minimize()));
+            titleBar.addView(windowButton("□", "Maximize " + titleText,
+                    v -> toggleMaximize()));
             titleBar.addView(windowButton("✕", v -> closeWindow(Window.this)));
 
             titleBar.setOnTouchListener((v, event) -> {
@@ -554,8 +559,15 @@ public class DesktopView extends FrameLayout {
         }
 
         private View windowButton(String label, OnClickListener listener) {
+            return windowButton(label, label, listener);
+        }
+
+        private View windowButton(String label, String description,
+                                  OnClickListener listener) {
             TextView button = new TextView(ctx);
             button.setText(label);
+            button.setContentDescription(description);
+            button.setTooltipText(description);
             button.setTextColor(COLOR_TEXT);
             button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             button.setGravity(Gravity.CENTER);
@@ -564,6 +576,10 @@ public class DesktopView extends FrameLayout {
                     Ui.rounded(ctx, Color.TRANSPARENT, 8), 0x44FFFFFF));
             button.setOnClickListener(listener);
             return button;
+        }
+
+        void minimize() {
+            setVisibility(GONE);
         }
 
         void toggleMaximize() {
@@ -1297,16 +1313,15 @@ public class DesktopView extends FrameLayout {
         PopupMenu menu = new PopupMenu(ctx, anchor);
         menu.getMenu().add(0, 1, 0, str(R.string.open));
         menu.getMenu().add(0, 2, 1, str(R.string.open_window));
-        if (host.hasExternalDisplay()) {
+        if (target instanceof AppRepo.AppEntry && host.hasExternalDisplay()) {
             menu.getMenu().add(0, 3, 2, str(R.string.open_external));
         }
-        boolean isApp = target instanceof AppRepo.AppEntry;
         boolean pinned = AppRepo.isPinned(ctx, target.key());
         menu.getMenu().add(0, 4, 3,
                 str(pinned ? R.string.unpin_desktop : R.string.pin_desktop));
         menu.getMenu().add(0, 5, 4, str(R.string.app_info));
         menu.getMenu().add(0, 6, 5, str(R.string.uninstall));
-        if (target instanceof EcoApps.Entry) {
+        if (target instanceof EcoApps.Entry || target instanceof AppRepo.AppEntry) {
             menu.getMenu().add(0, 7, 6, str(R.string.open_fullscreen));
         }
 
@@ -1334,7 +1349,11 @@ public class DesktopView extends FrameLayout {
                     return true;
                 case 7:
                     closeStart();
-                    ((EcoApps.Entry) target).open(host.hostContext());
+                    if (target instanceof AppRepo.AppEntry) {
+                        host.launchApp((AppRepo.AppEntry) target, false);
+                    } else {
+                        ((EcoApps.Entry) target).open(host.hostContext());
+                    }
                     return true;
                 default:
                     return false;
@@ -1392,7 +1411,7 @@ public class DesktopView extends FrameLayout {
             AppRepo.addRecent(ctx, item.key());
             openWindow(item.key());
         } else if (item instanceof AppRepo.AppEntry) {
-            host.launchApp((AppRepo.AppEntry) item, false);
+            host.launchApp((AppRepo.AppEntry) item, Prefs.windowedApps(ctx));
         }
     }
 

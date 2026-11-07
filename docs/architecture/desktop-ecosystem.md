@@ -188,6 +188,12 @@ multiple-instance-compatible launch mode, so supporting System UI's optional
 new-window affordance is consistent with their separate per-activity state.
 The property only requests a System UI affordance; the OS/device must provide
 desktop windowing and actual launch behavior still follows Android task rules.
+PocketDeX's own Files, Editor, Terminal, Calculator and Settings views are also
+available as movable in-desktop windows with minimize/restore, maximize and
+close controls. Other Android apps are requested as Android-managed freeform
+windows by default, with an explicit fullscreen override; PocketDeX cannot
+forcibly reparent arbitrary package activities into its process. See
+[Android app windowing research](../android-app-windowing.md).
 The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
 Remote file downloads use Android's save picker, validate each redirect against
 the configured server origin and obtain the WebView cookie header for the

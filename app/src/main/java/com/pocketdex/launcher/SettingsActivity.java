@@ -333,6 +333,11 @@ public class SettingsActivity extends Activity {
         section("Taskbar & behavior");
         LinearLayout card = card();
 
+        switchRow(card, "Open Android apps in windows by default",
+                "Ask Android for movable windows; unsupported devices open apps normally",
+                Prefs.windowedApps(this),
+                checked -> Prefs.setBoolean(this, "windowed_apps", checked));
+
         switchRow(card, "Double-tap to open", "Require two taps on desktop icons",
                 Prefs.doubleClick(this),
                 checked -> Prefs.setBoolean(this, "double_click", checked));
@@ -397,7 +402,10 @@ public class SettingsActivity extends Activity {
         section("Remote PC workspace");
         LinearLayout remoteCard = card();
         TextView explanation = subtitleText("Connect to your own Apache Guacamole server over HTTPS. "
-                + "RDP and VNC hosts are configured on that server; PocketDeX does not provide cloud hosting.");
+                + "RDP and VNC hosts are configured on that server; PocketDeX does not provide cloud hosting. "
+                + "To send an .exe to a remote Windows PC, use Guacamole's file-transfer menu while "
+                + "connected; the server administrator must enable uploads. PocketDeX's local apps "
+                + "continue to work without a server.");
         explanation.setPadding(0, dp(10), 0, dp(8));
         remoteCard.addView(explanation);
 
@@ -747,6 +755,8 @@ public class SettingsActivity extends Activity {
         TextView about = new TextView(this);
         about.setText("PocketDeX is a PC-style desktop launcher for Android. "
                 + "It replaces your home screen with a desktop, start menu and taskbar.\n\n"
+                + "PocketDeX's built-in apps use in-desktop windows. Other Android apps remain "
+                + "Android-managed and use freeform windows when the device supports them.\n\n"
                 + "Windowed apps and the external-display desktop depend on your "
                 + "device's multi-window support. If the device does not support "
                 + "freeform windows, apps open fullscreen instead.\n\n"
@@ -765,7 +775,7 @@ public class SettingsActivity extends Activity {
         card.addView(about);
 
         TextView version = new TextView(this);
-        version.setText("Version 2.0.0");
+        version.setText("Version " + BuildConfig.VERSION_NAME);
         version.setTextColor(DIM);
         version.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         version.setPadding(0, dp(4), 0, dp(10));
