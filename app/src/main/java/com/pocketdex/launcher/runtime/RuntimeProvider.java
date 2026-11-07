@@ -6,7 +6,9 @@ import android.content.Context;
 public interface RuntimeProvider {
     String id();
 
-    SupportReport inspect(Context context, AppDescriptor app);
+    SupportReport inspect(Context context, AppDescriptor app,
+                          DeviceCapabilityProfile capabilities);
 
-    void launch(Context context, AppDescriptor app) throws Exception;
+    void launch(Context context, AppDescriptor app,
+                DeviceCapabilityProfile capabilities) throws Exception;
 }

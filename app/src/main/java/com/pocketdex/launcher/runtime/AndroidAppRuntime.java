@@ -14,10 +14,12 @@ public final class AndroidAppRuntime implements RuntimeProvider {
     }
 
     @Override
-    public SupportReport inspect(Context context, AppDescriptor app) {
-        if (context == null || app == null || !id().equals(app.runtimeId())) {
+    public SupportReport inspect(Context context, AppDescriptor app,
+                                 DeviceCapabilityProfile capabilities) {
+        if (context == null || app == null || capabilities == null
+                || !id().equals(app.runtimeId())) {
             return new SupportReport(SupportReport.Status.UNSUPPORTED,
-                    "This app is not an Android runtime entry.");
+                    "This app is not a valid Android runtime entry.");
         }
         try {
             ActivityInfo activity = context.getPackageManager()
@@ -38,8 +40,9 @@ public final class AndroidAppRuntime implements RuntimeProvider {
     }
 
     @Override
-    public void launch(Context context, AppDescriptor app) throws Exception {
-        SupportReport report = inspect(context, app);
+    public void launch(Context context, AppDescriptor app,
+                       DeviceCapabilityProfile capabilities) throws Exception {
+        SupportReport report = inspect(context, app, capabilities);
         if (!report.isReady()) {
             throw new IllegalStateException(report.message());
         }

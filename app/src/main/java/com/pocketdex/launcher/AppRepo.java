@@ -7,6 +7,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,8 +19,10 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.pocketdex.launcher.runtime.AppDescriptor;
+import com.pocketdex.launcher.runtime.DeviceCapabilityProfile;
 import com.pocketdex.launcher.runtime.RuntimeProvider;
 import com.pocketdex.launcher.runtime.RuntimeRegistry;
+import com.pocketdex.launcher.runtime.SupportReport;
 
 public final class AppRepo {
     private static final String PREFS = "pocketdex";
@@ -75,11 +78,21 @@ public final class AppRepo {
                 RuntimeProvider runtime = RuntimeRegistry.getDefault()
                         .find(RuntimeRegistry.ANDROID);
                 if (runtime == null) {
+                    Toast.makeText(c, "No runtime is available for " + label,
+                            Toast.LENGTH_SHORT).show();
                     return;
                 }
-                runtime.launch(c, new AppDescriptor(key(), label,
-                        RuntimeRegistry.ANDROID, component.flattenToString()));
-            } catch (Exception ignored) {
+                AppDescriptor app = new AppDescriptor(key(), label,
+                        RuntimeRegistry.ANDROID, component.flattenToString());
+                DeviceCapabilityProfile capabilities = DeviceCapabilityProfile.capture(c);
+                SupportReport report = runtime.inspect(c, app, capabilities);
+                if (!report.isReady()) {
+                    Toast.makeText(c, report.message(), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                runtime.launch(c, app, capabilities);
+            } catch (Exception e) {
+                Toast.makeText(c, "Unable to open " + label, Toast.LENGTH_SHORT).show();
             }
         }
     }
