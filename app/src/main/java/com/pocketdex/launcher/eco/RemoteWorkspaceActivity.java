@@ -268,7 +268,7 @@ public final class RemoteWorkspaceActivity extends Activity {
         gatewayMetric.setText("Gateway response time: measuring…");
         new Thread(() -> {
             HttpURLConnection connection = null;
-            final String result;
+            String outcome = "Gateway response time unavailable. Check the server or network.";
             long start = SystemClock.elapsedRealtime();
             try {
                 connection = (HttpURLConnection) new URL(endpoint).openConnection();
@@ -278,15 +278,15 @@ public final class RemoteWorkspaceActivity extends Activity {
                 connection.setReadTimeout(10000);
                 int responseCode = connection.getResponseCode();
                 long elapsed = SystemClock.elapsedRealtime() - start;
-                result = "Gateway response: " + elapsed + " ms (HTTP "
+                outcome = "Gateway response: " + elapsed + " ms (HTTP "
                         + responseCode + "). This does not measure the remote desktop session.";
-            } catch (Exception e) {
-                result = "Gateway response time unavailable. Check the server or network.";
+            } catch (Exception ignored) {
             } finally {
                 if (connection != null) {
                     connection.disconnect();
                 }
             }
+            final String result = outcome;
             runOnUiThread(() -> {
                 if (!isFinishing() && !isDestroyed() && gatewayMetric != null
                         && generation == gatewayProbeGeneration) {
