@@ -1,5 +1,22 @@
 # Linux desktop runtime research
 
+## Android's built-in Linux terminal
+
+On select devices, Android provides a Developer options switch for a Linux
+development environment. The Android Terminal app downloads a Debian-based
+image and runs it in an OS-managed VM through AVF. AOSP describes terminal
+access through a WebView connected to a VM service; graphical Linux apps are a
+future partner use case in the current documentation, so this is not a GUI
+desktop replacement. Availability and activation remain controlled by Android
+and the device maker. PocketDeX can launch the Terminal app when Android exposes
+it as a launcher app, but does not manage the VM or report its state.
+
+AVF's protected-VM management is restricted to apps signed with the platform
+key. Microdroid also lacks Android Java APIs and graphics/UI, so PocketDeX
+cannot create a general-purpose AVF desktop VM as an ordinary installed app.
+The built-in Android Terminal is a system-managed product path, separate from
+PocketDeX's built-in Terminal and from the Termux:X11 path below.
+
 ## Supported user-managed path
 
 Termux:X11 is an Android X server add-on paired with a Termux package. Its
@@ -52,6 +69,9 @@ not a harmless launch intent.
 
 Upstream references:
 
+- [AOSP Linux development environment use case](https://source.android.com/docs/core/virtualization/usecases)
+- [AOSP AVF security requirements](https://source.android.com/docs/core/virtualization/security)
+- [Android 15 Linux terminal setup on select devices](https://developer.android.com/about/versions/15/release-notes#enable_the_linux_development_environment_on_device_using_developer_options)
 - [Termux:X11 README and setup guide](https://github.com/termux/termux-x11)
 - [PRoot-Distro README](https://github.com/termux/proot-distro)
 - [Termux RUN_COMMAND intent and permission requirements](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)

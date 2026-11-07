@@ -408,12 +408,14 @@ public class SettingsActivity extends Activity {
     }
 
     private void buildLinuxRuntime() {
-        section("Linux desktop (Termux)");
+        section("Linux desktop and terminal options");
         LinearLayout linuxCard = card();
         TextView description = subtitleText("Optional user-managed Linux desktop using Termux, "
                 + "PRoot-Distro and Termux:X11. PocketDeX does not install or control this environment. "
                 + "Install Termux and Termux:X11 from compatible signing sources, then install the "
-                + "Termux:X11 companion package and a Linux userland.");
+                + "Termux:X11 companion package and a Linux userland. On select devices, Android's "
+                + "separate Linux Terminal provides Debian in an OS-managed VM for command-line use, "
+                + "not a graphical desktop.");
         description.setPadding(0, dp(10), 0, dp(8));
         linuxCard.addView(description);
 
@@ -436,6 +438,8 @@ public class SettingsActivity extends Activity {
                 "https://github.com/termux/termux-x11"));
         actionButton(linuxCard, "PRoot-Distro documentation", () -> openExternalUrl(
                 "https://github.com/termux/proot-distro"));
+        actionButton(linuxCard, "Android Linux development environment", () -> openExternalUrl(
+                "https://source.android.com/docs/core/virtualization/usecases"));
     }
 
     private void openExternalUrl(String url) {

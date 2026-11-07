@@ -92,7 +92,10 @@ resources as local RAM or local GPU capacity.
    shortcuts and benchmark a published device/app matrix. Do not assume Android's
    Virtualization Framework is an app-accessible desktop VM: AOSP documents
    platform-signature permission requirements for pVM management, while
-   Microdroid lacks Android Java APIs and graphics/UI. Evaluate user-space
+   Microdroid lacks Android Java APIs and graphics/UI. AOSP's Android Terminal
+   Linux development environment is a separate OS-managed Debian VM on select
+   devices, currently terminal-oriented; PocketDeX may launch it through the
+   normal Android app catalog but cannot manage its VM. Evaluate user-space
    emulation and OEM-specific options separately; ship only after licensing,
    security and per-device performance are understood.
    A separate Settings guide documents the user-managed Termux:X11 plus

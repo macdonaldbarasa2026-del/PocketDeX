@@ -61,6 +61,12 @@ The upstream source manifest currently exports the launcher but keeps its
 rendering activity and foreground service private, so PocketDeX cannot safely
 dispatch directly to a Windows app through those components.
 
+Android's Linux development environment is an OS-managed Debian VM available
+on select devices. PocketDeX can hand off to its Terminal app when the system
+publishes a launcher activity, but has no supported interface to inspect or
+manage that VM. This state is not included in PocketDeX's runtime session
+measurements.
+
 Android secondary-display feature reporting is only a device capability
 advertisement. `ActivityOptions.setLaunchDisplayId` may still be rejected for a
 specific display or activity by platform policy; report successful dispatch

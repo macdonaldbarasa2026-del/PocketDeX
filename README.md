@@ -36,7 +36,9 @@ without depending on whatever is installed on the phone:
 - **Linux desktop setup** — Settings includes a guide for a separately managed
   Termux + PRoot-Distro + Termux:X11 desktop. It shares Android's kernel and
   device resources; it is not a VM and PocketDeX does not execute Termux
-  commands or manage Linux sessions.
+  commands or manage Linux sessions. On select devices, Android also offers a
+  separate Debian-based Linux terminal VM in Developer options; it is a
+  command-line environment, not a graphical desktop.
 
 Ecosystem apps appear in the Start menu tiles, default taskbar dock, desktop
 grid and the empty-desktop right-click menu. You can pin or unpin them like
