@@ -20,8 +20,8 @@ public final class AndroidAppRuntime implements RuntimeProvider {
                     "This app is not an Android runtime entry.");
         }
         try {
-            ActivityInfo activity = component(app).getActivityInfo(
-                    context.getPackageManager(), 0);
+            ActivityInfo activity = context.getPackageManager()
+                    .getActivityInfo(component(app), 0);
             if (!activity.enabled || !activity.applicationInfo.enabled) {
                 return new SupportReport(SupportReport.Status.UNAVAILABLE,
                         "The Android app is disabled.");
