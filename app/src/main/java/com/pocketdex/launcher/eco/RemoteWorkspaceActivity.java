@@ -7,7 +7,9 @@ import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.OutcomeReceiver;
 import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -48,6 +50,8 @@ public final class RemoteWorkspaceActivity extends Activity {
     private WebView webView;
     private TextView status;
     private TextView gatewayMetric;
+    private TextView fullscreenButton;
+    private boolean fullscreenRequested;
     private Uri trustedOrigin;
     private String sessionId;
     private int gatewayProbeGeneration;
@@ -93,6 +97,9 @@ public final class RemoteWorkspaceActivity extends Activity {
             }
         }));
         toolbar.addView(toolbarButton("Disconnect", v -> disconnect()));
+        fullscreenButton = toolbarButton("Full", v -> toggleFullscreenMode());
+        fullscreenButton.setContentDescription("Request fullscreen mode");
+        toolbar.addView(fullscreenButton);
         root.addView(toolbar, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -116,6 +123,53 @@ public final class RemoteWorkspaceActivity extends Activity {
         root.addView(webView, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         setContentView(root);
+    }
+
+    private void toggleFullscreenMode() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            status.setText("Android 14 or newer is required to request fullscreen from a window.");
+            return;
+        }
+        int request = fullscreenRequested
+                ? Activity.FULLSCREEN_MODE_REQUEST_EXIT
+                : Activity.FULLSCREEN_MODE_REQUEST_ENTER;
+        fullscreenButton.setEnabled(false);
+        requestFullscreenMode(request, new OutcomeReceiver<Void, Throwable>() {
+            @Override
+            public void onResult(Void result) {
+                runOnUiThread(() -> {
+                    fullscreenRequested = request == Activity.FULLSCREEN_MODE_REQUEST_ENTER;
+                    fullscreenButton.setEnabled(true);
+                    fullscreenButton.setText(fullscreenRequested ? "Window" : "Full");
+                    fullscreenButton.setContentDescription(fullscreenRequested
+                            ? "Return to windowed mode" : "Request fullscreen mode");
+                    status.setText(fullscreenRequested
+                            ? "Fullscreen requested. Use Window to return to the desktop workspace."
+                            : "Returned to the previous window mode.");
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                runOnUiThread(() -> {
+                    fullscreenButton.setEnabled(true);
+                    status.setText("Fullscreen request was not approved.");
+                });
+            }
+        });
+    }
+
+    @Override
+    public void onMultiWindowModeChanged(boolean isInMultiWindowMode,
+                                         Configuration newConfig) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig);
+        if (isInMultiWindowMode && fullscreenRequested) {
+            fullscreenRequested = false;
+            if (fullscreenButton != null) {
+                fullscreenButton.setText("Full");
+                fullscreenButton.setContentDescription("Request fullscreen mode");
+            }
+        }
     }
 
     private void configureWebView() {

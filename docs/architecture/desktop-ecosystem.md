@@ -165,11 +165,16 @@ supported Android 16 QPR3 devices, the OS can also provide a separate connected
 display desktop-windowing workspace; PocketDeX does not control that system
 workspace. See [Android connected-display support](https://developer.android.com/blog/posts/android-devices-extend-seamlessly-to-connected-displays)
 and the [Presentation display callbacks](https://developer.android.com/reference/android/app/Presentation).
+Remote PC includes a user-triggered fullscreen request for Android 14 and
+newer. The platform can approve or reject a transition from a multi-window
+state, and PocketDeX only changes the toolbar control after approval. It does
+not change the remote compute host or the Guacamole connection.
 
 ## Platform references
 
 - [Android multi-window support](https://developer.android.com/develop/ui/views/layout/support-multi-window-mode)
 - [Android desktop windowing](https://developer.android.com/develop/adaptive-apps/guides/support-desktop-windowing)
+- [Android Activity fullscreen-mode request](https://developer.android.com/reference/android/app/Activity#requestFullscreenMode(int,android.os.OutcomeReceiver))
 - [Android multi-instance system UI property](https://developer.android.com/reference/android/view/WindowManager#PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI)
 - [Android connected displays](https://developer.android.com/develop/adaptive-apps/guides/support-connected-displays)
 - [Android ActivityOptions launch bounds](https://developer.android.com/reference/android/app/ActivityOptions#setLaunchBounds(android.graphics.Rect))
