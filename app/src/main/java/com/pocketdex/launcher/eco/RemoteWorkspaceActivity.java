@@ -2,6 +2,7 @@ package com.pocketdex.launcher.eco;
 
 import android.app.Activity;
 import android.content.res.Configuration;
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,15 +18,24 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.ValueCallback;
+import android.webkit.URLUtil;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.pocketdex.launcher.Ui;
 import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 
 /** Remote desktop viewer for a user-managed HTTPS Apache Guacamole server. */
 public final class RemoteWorkspaceActivity extends Activity {
+    private static final int REQUEST_FILE_CHOOSER = 41;
+    private static final int REQUEST_DOWNLOAD_TARGET = 42;
     private static final int BG = 0xFF0B0D12;
     private static final int TEXT = 0xFFF4F6FB;
     private static final int DIM = 0xFF9AA3B5;
@@ -33,6 +43,9 @@ public final class RemoteWorkspaceActivity extends Activity {
     private WebView webView;
     private TextView status;
     private Uri trustedOrigin;
+    private ValueCallback<Uri[]> pendingFileCallback;
+    private String pendingDownloadUrl;
+    private String pendingDownloadName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +120,56 @@ public final class RemoteWorkspaceActivity extends Activity {
                             + "remote connection.");
                 }
             }
+
+            @Override
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
+                                             FileChooserParams params) {
+                if (pendingFileCallback != null) {
+                    pendingFileCallback.onReceiveValue(null);
+                }
+                pendingFileCallback = callback;
+                if (!isTrustedPage(view.getUrl())) {
+                    finishFileChooser(null);
+                    status.setText("File access is available only on the configured gateway.");
+                    return true;
+                }
+                if (params.getMode() != FileChooserParams.MODE_OPEN
+                        && params.getMode() != FileChooserParams.MODE_OPEN_MULTIPLE) {
+                    finishFileChooser(null);
+                    status.setText("This remote file request is not an upload selection.");
+                    return true;
+                }
+                try {
+                    Intent chooser = params.createIntent();
+                    startActivityForResult(chooser, REQUEST_FILE_CHOOSER);
+                    status.setText("Choose a file to upload to the remote session.");
+                } catch (Exception e) {
+                    finishFileChooser(null);
+                    status.setText("No compatible file picker is available.");
+                }
+                return true;
+            }
+        });
+        webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, size) -> {
+            Uri downloadUri = Uri.parse(url);
+            if (!isTrustedOrigin(downloadUri)) {
+                status.setText("Blocked download outside the configured HTTPS server.");
+                return;
+            }
+            try {
+                pendingDownloadUrl = url;
+                pendingDownloadName = safeDownloadName(
+                        URLUtil.guessFileName(url, contentDisposition, mimeType));
+                Intent create = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                create.addCategory(Intent.CATEGORY_OPENABLE);
+                create.setType(mimeType == null ? "application/octet-stream" : mimeType);
+                create.putExtra(Intent.EXTRA_TITLE, pendingDownloadName);
+                startActivityForResult(create, REQUEST_DOWNLOAD_TARGET);
+                status.setText("Choose where to save the remote file.");
+            } catch (Exception e) {
+                clearPendingDownload();
+                status.setText("Could not open Android's save dialog.");
+            }
         });
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -160,9 +223,156 @@ public final class RemoteWorkspaceActivity extends Activity {
     private boolean isTrustedOrigin(Uri candidate) {
         return trustedOrigin != null
                 && "https".equalsIgnoreCase(candidate.getScheme())
+                && candidate.getUserInfo() == null
                 && trustedOrigin.getHost() != null
                 && trustedOrigin.getHost().equalsIgnoreCase(candidate.getHost())
                 && effectivePort(trustedOrigin) == effectivePort(candidate);
+    }
+
+    private boolean isTrustedPage(String url) {
+        if (url == null) {
+            return false;
+        }
+        try {
+            return isTrustedOrigin(Uri.parse(url));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String safeDownloadName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return "remote-file";
+        }
+        String safe = name.replaceAll("[^A-Za-z0-9._ -]", "_").trim();
+        return safe.isEmpty() ? "remote-file" : safe;
+    }
+
+    private void clearPendingDownload() {
+        pendingDownloadUrl = null;
+        pendingDownloadName = null;
+    }
+
+    private void downloadTo(Uri target) {
+        final String source = pendingDownloadUrl;
+        final String userAgent = webView == null ? null : webView.getSettings().getUserAgentString();
+        final String cookie = source == null ? null : CookieManager.getInstance().getCookie(source);
+        clearPendingDownload();
+        status.setText("Downloading remote file…");
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            String outcome;
+            try {
+                URL current = new URL(source);
+                for (int redirects = 0; ; redirects++) {
+                    if (!isTrustedOrigin(Uri.parse(current.toString()))) {
+                        throw new IllegalStateException("Download redirect left the configured server.");
+                    }
+                    connection = (HttpURLConnection) current.openConnection();
+                    connection.setInstanceFollowRedirects(false);
+                    connection.setConnectTimeout(15000);
+                    connection.setReadTimeout(30000);
+                    if (userAgent != null) {
+                        connection.setRequestProperty("User-Agent", userAgent);
+                    }
+                    if (cookie != null && !cookie.isEmpty()) {
+                        connection.setRequestProperty("Cookie", cookie);
+                    }
+                    int response = connection.getResponseCode();
+                    if (response == HttpURLConnection.HTTP_MOVED_PERM
+                            || response == HttpURLConnection.HTTP_MOVED_TEMP
+                            || response == HttpURLConnection.HTTP_SEE_OTHER
+                            || response == 307 || response == 308) {
+                        if (redirects >= 5) {
+                            throw new IllegalStateException("Too many download redirects.");
+                        }
+                        String location = connection.getHeaderField("Location");
+                        if (location == null || location.trim().isEmpty()) {
+                            throw new IllegalStateException("The server returned an invalid redirect.");
+                        }
+                        URL next = new URL(current, location);
+                        connection.disconnect();
+                        connection = null;
+                        current = next;
+                        continue;
+                    }
+                    if (response < 200 || response >= 300) {
+                        throw new IllegalStateException("Remote server returned HTTP " + response + ".");
+                    }
+                    try (InputStream input = connection.getInputStream();
+                         OutputStream output = getContentResolver().openOutputStream(target, "w")) {
+                        if (output == null) {
+                            throw new IllegalStateException("Android could not open the selected destination.");
+                        }
+                        byte[] buffer = new byte[16384];
+                        int count;
+                        while ((count = input.read(buffer)) != -1) {
+                            output.write(buffer, 0, count);
+                        }
+                    }
+                    break;
+                }
+                outcome = "Remote file saved.";
+            } catch (Exception e) {
+                outcome = "Remote download failed: " + e.getMessage();
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            final String message = outcome;
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed() && status != null) {
+                    status.setText(message);
+                }
+            });
+        }, "pocketdex-remote-download").start();
+    }
+
+    private void finishFileChooser(Uri[] result) {
+        ValueCallback<Uri[]> callback = pendingFileCallback;
+        pendingFileCallback = null;
+        if (callback != null) {
+            callback.onReceiveValue(result);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_DOWNLOAD_TARGET) {
+            Uri target = resultCode == RESULT_OK && data != null ? data.getData() : null;
+            if (target != null && "content".equalsIgnoreCase(target.getScheme())
+                    && pendingDownloadUrl != null) {
+                downloadTo(target);
+            } else {
+                clearPendingDownload();
+                status.setText("Remote file save cancelled.");
+            }
+            return;
+        }
+        if (requestCode != REQUEST_FILE_CHOOSER) {
+            return;
+        }
+        Uri[] results = null;
+        if (resultCode == RESULT_OK && data != null) {
+            Uri[] candidates = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+            if (candidates != null && candidates.length > 0) {
+                java.util.ArrayList<Uri> accepted = new java.util.ArrayList<>();
+                for (Uri candidate : candidates) {
+                    if (candidate != null && "content".equalsIgnoreCase(candidate.getScheme())) {
+                        accepted.add(candidate);
+                    }
+                }
+                if (!accepted.isEmpty()) {
+                    results = accepted.toArray(new Uri[0]);
+                }
+            }
+        }
+        finishFileChooser(results);
+        if (results == null) {
+            status.setText("File selection cancelled or returned an unsupported location.");
+        }
     }
 
     private int effectivePort(Uri uri) {
@@ -218,6 +428,8 @@ public final class RemoteWorkspaceActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        clearPendingDownload();
+        finishFileChooser(null);
         if (webView != null) {
             webView.stopLoading();
             webView.setWebChromeClient(null);

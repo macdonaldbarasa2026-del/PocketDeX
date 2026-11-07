@@ -35,6 +35,18 @@ full desktop depending on the host configuration.
 5. Choose **Disconnect** to stop the page and clear the WebView cookies. Sign
    out from the Guacamole page first if the server provides a sign-out action.
 
+When the gateway requests an upload, PocketDeX opens Android's system file
+picker. Only user-selected `content://` files are returned to the page; PocketDeX
+does not grant broad storage access. Downloads from the configured HTTPS server
+prompt for a destination through Android's system save picker. Redirects are
+limited to the configured server origin, and the session cookie is not sent to a
+different host. The server and Guacamole connection must have file transfer
+enabled for these controls to work.
+The picker uses WebView's documented file chooser callback and validates the
+returned URI scheme before handing the selected file to the page. See the
+[Android WebView file chooser API](https://developer.android.com/reference/android/webkit/WebChromeClient#onShowFileChooser(android.webkit.WebView,android.webkit.ValueCallback,android.webkit.WebChromeClient.FileChooserParams))
+and [Guacamole file transfer configuration](https://guacamole.apache.org/doc/gug/configuring-guacamole.html#rdp).
+
 PocketDeX stores the server URL only. It does not store the Guacamole password
 or remote host credentials. It enables JavaScript and DOM storage because the
 Guacamole client requires a browser runtime, but disables file/content access,
@@ -50,6 +62,6 @@ configured HTTPS origin.
   display. PocketDeX does not guarantee a particular latency or application
   compatibility.
 - This first client displays the Guacamole web app in a resizable Android
-  activity. It does not yet expose native per-application windows, remote file
-  mounts, host setup, or provider-side resource management.
+  activity. It does not yet expose native per-application windows, a mounted
+  remote filesystem, host setup, or provider-side resource management.
 - Cross-origin single sign-on redirects are blocked by the WebView origin rule.
