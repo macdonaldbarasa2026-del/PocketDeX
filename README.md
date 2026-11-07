@@ -79,7 +79,7 @@ any other app, and toggle the desktop ecosystem section in Settings.
   - Right-click: context menu
   - Alt+Tab: switch recent apps
   - Remote PC: toolbar Full button or Alt+Enter requests fullscreen on Android 14+
-  - F5: reload the app list
+  - F5: reload the app list; Start, menu and open actions trigger once per key press
 - **Customization**: icon size, automatic or fixed grid columns, labels,
   double-tap to launch, taskbar fade, fullscreen, clock seconds and external
   desktop toggle.

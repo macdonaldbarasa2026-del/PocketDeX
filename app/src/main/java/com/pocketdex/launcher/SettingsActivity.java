@@ -594,7 +594,8 @@ public class SettingsActivity extends Activity {
                 + "• Arrow keys + Enter: navigate and open\n"
                 + "• Right-click: context menu\n"
                 + "• Alt+Tab: switch recent apps\n"
-                + "• F5: reload app list");
+                + "• F5: reload app list\n"
+                + "• Hold arrow keys to move focus; Start, menu and open actions run once per press");
         about.setTextColor(DIM);
         about.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         about.setLineSpacing(dp(2), 1f);

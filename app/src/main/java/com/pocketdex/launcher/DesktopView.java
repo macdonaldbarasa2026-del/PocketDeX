@@ -1634,6 +1634,15 @@ public class DesktopView extends FrameLayout {
     }
 
     public boolean handleKeyDown(int keyCode, KeyEvent event) {
+        if (event.getRepeatCount() > 0
+                && (keyCode == KeyEvent.KEYCODE_SEARCH
+                || keyCode == KeyEvent.KEYCODE_MENU
+                || keyCode == KeyEvent.KEYCODE_F5
+                || keyCode == KeyEvent.KEYCODE_ENTER
+                || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
+                || keyCode == KeyEvent.KEYCODE_DPAD_CENTER)) {
+            return true;
+        }
         if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
             if (startOpen) {
                 closeStart();

@@ -146,17 +146,23 @@ public class TerminalActivity extends Activity implements ShellEngine.Listener {
 
     @Override
     public boolean dispatchKeyShortcutEvent(KeyEvent event) {
+        if (isStopShortcut(event) && event.getRepeatCount() > 0) {
+            return true;
+        }
         if (handleStopShortcut(event)) {
             return true;
         }
         return super.dispatchKeyShortcutEvent(event);
     }
 
+    private boolean isStopShortcut(KeyEvent event) {
+        return event != null && event.getKeyCode() == KeyEvent.KEYCODE_C
+                && event.isCtrlPressed() && !event.isShiftPressed()
+                && !event.isAltPressed() && !event.isMetaPressed();
+    }
+
     private boolean handleStopShortcut(KeyEvent event) {
-        if (event == null || event.getKeyCode() != KeyEvent.KEYCODE_C
-                || !event.isCtrlPressed() || event.isShiftPressed()
-                || event.isAltPressed() || event.isMetaPressed()
-                || engine == null || !engine.busy()
+        if (!isStopShortcut(event) || engine == null || !engine.busy()
                 || input == null || input.length() != 0
                 || getCurrentFocus() != input) {
             return false;

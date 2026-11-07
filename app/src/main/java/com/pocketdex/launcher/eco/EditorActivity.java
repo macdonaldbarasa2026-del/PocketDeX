@@ -168,10 +168,12 @@ public class EditorActivity extends Activity {
         if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_S
                 && !event.isAltPressed()
                 && (event.isCtrlPressed() || event.isMetaPressed())) {
-            if (event.isShiftPressed()) {
-                saveAs();
-            } else {
-                save();
+            if (event.getRepeatCount() == 0) {
+                if (event.isShiftPressed()) {
+                    saveAs();
+                } else {
+                    save();
+                }
             }
             return true;
         }
