@@ -6,6 +6,10 @@ android {
     namespace = "com.pocketdex.launcher"
     compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.pocketdex.launcher"
         minSdk = 26
