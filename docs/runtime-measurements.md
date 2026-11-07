@@ -62,6 +62,8 @@ The origin-limited Android message API is documented in the
 [WebViewCompat reference](https://developer.android.com/reference/androidx/webkit/WebViewCompat#addWebMessageListener(android.webkit.WebView,java.lang.String,java.util.Set,androidx.webkit.WebViewCompat.WebMessageListener));
 the Android security guidance recommends origin-aware messaging over a broad
 JavaScript interface for web content that is not authored by the app.
+PocketDeX also handles [Android WebView renderer termination](https://developer.android.com/develop/ui/views/layout/webapps/handle-termination)
+by discarding the stopped view and letting the user reconnect with a new one.
 
 ## Device thermal status
 

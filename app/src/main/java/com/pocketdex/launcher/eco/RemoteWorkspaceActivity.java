@@ -15,6 +15,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.webkit.CookieManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -60,6 +61,7 @@ public final class RemoteWorkspaceActivity extends Activity {
     private TextView gatewayMetric;
     private TextView connectionMetric;
     private TextView fullscreenButton;
+    private FrameLayout webContainer;
     private boolean fullscreenRequested;
     private Uri trustedOrigin;
     private String sessionId;
@@ -116,12 +118,7 @@ public final class RemoteWorkspaceActivity extends Activity {
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
         toolbar.setPadding(dp(8), dp(6), dp(8), dp(6));
         toolbar.addView(toolbarButton("Back", v -> finish()));
-        toolbar.addView(toolbarButton("Reconnect", v -> {
-            if (webView != null && trustedOrigin != null) {
-                status.setText("Reconnecting to the Guacamole gateway…");
-                webView.loadUrl(trustedOrigin.toString());
-            }
-        }));
+        toolbar.addView(toolbarButton("Reconnect", v -> reconnectGateway()));
         toolbar.addView(toolbarButton("Disconnect", v -> disconnect()));
         fullscreenButton = toolbarButton("Full", v -> toggleFullscreenMode());
         fullscreenButton.setContentDescription("Request fullscreen mode");
@@ -152,11 +149,31 @@ public final class RemoteWorkspaceActivity extends Activity {
         root.addView(connectionMetric, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        webContainer = new FrameLayout(this);
+        root.addView(webContainer, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        createWebView();
+        setContentView(root);
+    }
+
+    private void createWebView() {
         webView = new WebView(this);
         webView.setBackgroundColor(Color.BLACK);
-        root.addView(webView, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        setContentView(root);
+        webContainer.addView(webView, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    private void reconnectGateway() {
+        if (trustedOrigin == null) {
+            status.setText("Set a valid HTTPS Guacamole server in PocketDeX Settings.");
+            return;
+        }
+        if (webView == null) {
+            createWebView();
+            configureWebView();
+        }
+        status.setText("Reconnecting to the Guacamole gateway…");
+        webView.loadUrl(trustedOrigin.toString());
     }
 
     private void toggleFullscreenMode() {
@@ -282,6 +299,28 @@ public final class RemoteWorkspaceActivity extends Activity {
             }
         });
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean onRenderProcessGone(WebView view,
+                                               android.webkit.RenderProcessGoneDetail detail) {
+                if (view.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) view.getParent()).removeView(view);
+                }
+                view.destroy();
+                if (webView == view) {
+                    webView = null;
+                }
+                gatewayProbeGeneration++;
+                finishFileChooser(null);
+                clearPendingDownload();
+                status.setText("Remote viewer stopped unexpectedly. Use Reconnect to try again.");
+                connectionMetric.setText("Remote connection state unavailable: viewer stopped.");
+                updateSession(RuntimeSession.State.DEGRADED,
+                        detail != null && detail.didCrash()
+                                ? "The Android WebView renderer crashed."
+                                : "Android stopped the WebView renderer to reclaim resources.");
+                return true;
+            }
+
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 mainFrameHttpError = false;

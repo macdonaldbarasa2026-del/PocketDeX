@@ -42,7 +42,9 @@ full desktop depending on the host configuration.
    measurement reports the HTTPS gateway response time and HTTP status. This
    probe does not measure RDP/VNC input latency. The remote connection state is
    shown only when the gateway page has the optional PocketDeX integration
-   below; otherwise PocketDeX reports that state as unavailable.
+   below; otherwise PocketDeX reports that state as unavailable. If Android
+   stops or crashes the WebView renderer, PocketDeX discards that WebView and
+   offers a fresh reconnect rather than reusing the stopped renderer.
 5. Choose **Disconnect** to stop the page and clear the WebView cookies. Sign
    out from the Guacamole page first if the server provides a sign-out action.
 

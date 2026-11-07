@@ -81,12 +81,13 @@ resources as local RAM or local GPU capacity.
    VNC bridging. The client supports reconnect, system file pickers for file
    transfers, a single HTTPS gateway response-time probe, and opt-in activity
    launch on an external display when the device allows it. It does not report
-   RDP/VNC input latency or resource usage. Per-connection state requires
-   instrumentation inside the Guacamole client page; end-to-end input latency
-   additionally requires a defined acknowledgment or controlled echo workload.
-   See [runtime measurement research](../runtime-measurements.md). Do not
-   provision cloud compute until provider, cost and credentials are explicitly
-   chosen.
+   RDP/VNC input latency or resource usage. A gateway may opt in to report
+   coarse connection state through PocketDeX's versioned, origin-limited
+   WebView message contract; PocketDeX labels it gateway-reported. End-to-end
+   input latency still requires a defined acknowledgment or controlled echo
+   workload. See [runtime measurement research](../runtime-measurements.md).
+   Do not provision cloud compute until provider, cost and credentials are
+   explicitly chosen.
 4. **Local compatibility research:** PocketDeX now detects and launches the
    separately installed Winlator app on ARM64 devices. Next add per-app
    shortcuts and benchmark a published device/app matrix. Do not assume Android's
@@ -98,6 +99,12 @@ resources as local RAM or local GPU capacity.
    normal Android app catalog but cannot manage its VM. Evaluate user-space
    emulation and OEM-specific options separately; ship only after licensing,
    security and per-device performance are understood.
+   Android's companion app-streaming role is also unavailable to ordinary
+   installed apps: AOSP restricts role holders to preinstalled privileged
+   apps reviewed with the device maker. PocketDeX therefore uses supported
+   secondary-display launches and its user-managed Guacamole workspace rather
+   than relying on the privileged VirtualDevice streaming APIs or system-level
+   input injection.
    A separate Settings guide documents the user-managed Termux:X11 plus
    PRoot-Distro Linux desktop path. The X server requires both its Android app
    and Termux companion package; PRoot-Distro requires shared temporary files
@@ -238,6 +245,7 @@ the receiving app; each target must accept and request the temporary grant.
 - [Android package visibility declarations](https://developer.android.com/training/package-visibility/declaring)
 - [Android ABI guidance](https://developer.android.com/ndk/guides/abis)
 - [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)
+- [Android companion app-streaming role requirements](https://source.android.com/docs/core/permissions/app-streaming)
 - [AVF security and pVM permissions](https://source.android.com/docs/core/virtualization/security)
 - [Microdroid capabilities and limitations](https://source.android.com/docs/core/virtualization/microdroid)
 - [Winlator Android app and compatibility notes](https://github.com/brunodev85/winlator)

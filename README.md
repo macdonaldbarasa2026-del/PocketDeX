@@ -30,7 +30,9 @@ without depending on whatever is installed on the phone:
 - **Remote PC** — connect to a user-managed Apache Guacamole HTTPS gateway for
   remote RDP/VNC desktops. PocketDeX displays the remote session, offers an
   Android 14+ fullscreen request from its toolbar when running windowed, and
-  the PC runs on the configured remote host.
+  the PC runs on the configured remote host. Gateway owners can optionally
+  report coarse connection state; a stopped Android WebView renderer can be
+  replaced through Reconnect.
 - **Local Windows** — launch the separately installed Winlator runtime on
   supported 64-bit ARM devices to run compatible x86-64 Windows applications.
 - **Linux desktop setup** — Settings includes a guide for a separately managed
