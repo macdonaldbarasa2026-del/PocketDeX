@@ -2,7 +2,6 @@ package com.pocketdex.launcher;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -16,6 +15,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import com.pocketdex.launcher.runtime.AppDescriptor;
+import com.pocketdex.launcher.runtime.RuntimeProvider;
+import com.pocketdex.launcher.runtime.RuntimeRegistry;
 
 public final class AppRepo {
     private static final String PREFS = "pocketdex";
@@ -67,12 +70,14 @@ public final class AppRepo {
 
         @Override
         public void open(Context c) {
-            Intent intent = new Intent(Intent.ACTION_MAIN);
-            intent.addCategory(Intent.CATEGORY_LAUNCHER);
-            intent.setComponent(component);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             try {
-                c.startActivity(intent);
+                RuntimeProvider runtime = RuntimeRegistry.getDefault()
+                        .find(RuntimeRegistry.ANDROID);
+                if (runtime == null) {
+                    return;
+                }
+                runtime.launch(c, new AppDescriptor(key(), label,
+                        RuntimeRegistry.ANDROID, component.flattenToString()));
             } catch (Exception ignored) {
             }
         }
