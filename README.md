@@ -19,7 +19,8 @@ without depending on whatever is installed on the phone:
   and files, rename and delete.
 - **Editor** — plain-text editor with load/save over SAF, "Save As",
   word-wrap toggle, live line/column status, monospace typography and hardware
-  keyboard shortcuts (`Ctrl+S` to save, `Ctrl+Shift+S` to save as).
+  keyboard shortcuts (`Ctrl+S` to save, `Ctrl+Shift+S` to save as). Drop one
+  text item or text file into the editor to insert it at the caret.
 - **Terminal** — an embedded `/system/bin/sh` session inside the launcher with
   Ctrl+C to stop a running command, clear/stop controls and quick command
   buttons, plus hardware keyboard input.

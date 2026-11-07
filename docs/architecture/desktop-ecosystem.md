@@ -169,6 +169,12 @@ Remote PC includes a user-triggered fullscreen request for Android 14 and
 newer. The platform can approve or reject a transition from a multi-window
 state, and PocketDeX only changes the toolbar control after approval. It does
 not change the remote compute host or the Guacamole connection.
+The built-in Editor accepts one text item or `content://` text file by drag and
+drop, obtains Android's temporary drag permission before reading, rejects other
+URI schemes and non-text MIME types, and enforces the existing 3 MB editor
+limit. The text is inserted at the current selection and is not saved
+automatically. See [Android desktop drag-and-drop guidance](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality/experiences/desktop)
+and [cross-app URI drag permissions](https://developer.android.com/develop/ui/views/touch-and-input/drag-drop/multi-window).
 
 ## Platform references
 
@@ -186,6 +192,8 @@ not change the remote compute host or the Guacamole connection.
 - [Android display-specific window metrics](https://developer.android.com/develop/adaptive-apps/guides/support-multi-window-mode#window-metrics)
 - [Android large-screen keyboard and pointer input](https://developer.android.com/develop/ui/views/touch-and-input/input-compatibility-on-large-screens)
 - [Android InputDevice API](https://developer.android.com/reference/android/view/InputDevice)
+- [Android adaptive desktop app quality guidelines](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality/experiences/desktop)
+- [Android multi-window drag-and-drop](https://developer.android.com/develop/ui/views/touch-and-input/drag-drop/multi-window)
 - [Android secondary-display activity feature](https://developer.android.com/reference/android/content/pm/PackageManager#FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)
 - [Android ABI guidance](https://developer.android.com/ndk/guides/abis)
 - [Android Virtualization Framework overview](https://source.android.com/docs/core/virtualization)

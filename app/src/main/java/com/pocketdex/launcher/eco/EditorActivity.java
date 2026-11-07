@@ -1,12 +1,16 @@
 package com.pocketdex.launcher.eco;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.DragAndDropPermissions;
+import android.view.DragEvent;
 import android.text.InputType;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -27,6 +31,7 @@ import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 public class EditorActivity extends Activity {
 
@@ -127,6 +132,7 @@ public class EditorActivity extends Activity {
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         editor.setBackgroundColor(Color.TRANSPARENT);
         editor.setPadding(dp(12), dp(10), dp(12), dp(10));
+        editor.setOnDragListener(this::handleEditorDrag);
         editor.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence text, int start, int count, int after) {
@@ -225,6 +231,131 @@ public class EditorActivity extends Activity {
         editor.setHorizontallyScrolling(!switchWrap);
         Toast.makeText(this, switchWrap ? "Wrap on" : "Wrap off",
                 Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean handleEditorDrag(View view, DragEvent event) {
+        switch (event.getAction()) {
+            case DragEvent.ACTION_DRAG_STARTED:
+                ClipDescription description = event.getClipDescription();
+                return description != null && description.hasMimeType("text/*");
+            case DragEvent.ACTION_DRAG_ENTERED:
+                status.setText("Drop text here to insert it at the caret.");
+                return true;
+            case DragEvent.ACTION_DRAG_LOCATION:
+                return true;
+            case DragEvent.ACTION_DRAG_EXITED:
+            case DragEvent.ACTION_DRAG_ENDED:
+                updateStatus();
+                return true;
+            case DragEvent.ACTION_DROP:
+                return insertDroppedContent(event);
+            default:
+                return false;
+        }
+    }
+
+    private boolean insertDroppedContent(DragEvent event) {
+        ClipData clip = event.getClipData();
+        if (clip == null || clip.getItemCount() != 1) {
+            status.setText("Drop one text item at a time.");
+            return false;
+        }
+        ClipData.Item item = clip.getItemAt(0);
+        CharSequence text = item.getText();
+        if (text != null) {
+            if (text.length() > MAX_BYTES) {
+                status.setText("Dropped text exceeds the 3 MB Editor limit.");
+                return false;
+            }
+            String value = text.toString();
+            if (value.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) {
+                status.setText("Dropped text exceeds the 3 MB Editor limit.");
+                return false;
+            }
+            insertDroppedText(value);
+            return true;
+        }
+        Uri droppedUri = item.getUri();
+        return droppedUri != null && readDroppedText(droppedUri, event);
+    }
+
+    private void insertDroppedText(String text) {
+        Editable content = editor.getText();
+        int start = Math.max(0, Math.min(editor.getSelectionStart(), content.length()));
+        int end = Math.max(start, Math.min(editor.getSelectionEnd(), content.length()));
+        content.replace(start, end, text);
+        editor.setSelection(start + text.length());
+        updateStatus();
+        Toast.makeText(this, "Text inserted. Save to keep the changes.",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean readDroppedText(Uri droppedUri, DragEvent event) {
+        if (!"content".equalsIgnoreCase(droppedUri.getScheme())) {
+            status.setText("Only text content shared by Android can be dropped here.");
+            return false;
+        }
+        final DragAndDropPermissions permissions;
+        try {
+            permissions = requestDragAndDropPermissions(event);
+        } catch (Exception e) {
+            status.setText("Android did not grant access to the dropped file.");
+            return false;
+        }
+        if (permissions == null) {
+            status.setText("Android did not grant access to the dropped file.");
+            return false;
+        }
+        try {
+            String mimeType = getContentResolver().getType(droppedUri);
+            if (mimeType == null || !mimeType.toLowerCase(Locale.ROOT).startsWith("text/")) {
+                permissions.release();
+                status.setText("Only text files can be dropped into the Editor.");
+                return false;
+            }
+        } catch (Exception e) {
+            permissions.release();
+            status.setText("Could not identify the dropped file type.");
+            return false;
+        }
+        status.setText("Reading dropped text…");
+        new Thread(() -> {
+            String text = null;
+            Exception error = null;
+            try (InputStream in = getContentResolver().openInputStream(droppedUri)) {
+                if (in == null) {
+                    throw new IllegalStateException("No readable content");
+                }
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte[] buffer = new byte[8192];
+                int read;
+                long total = 0;
+                while ((read = in.read(buffer)) != -1) {
+                    total += read;
+                    if (total > MAX_BYTES) {
+                        throw new IllegalStateException("Text file exceeds the 3 MB limit");
+                    }
+                    out.write(buffer, 0, read);
+                }
+                text = new String(out.toByteArray(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                error = e;
+            }
+            String result = text;
+            Exception failure = error;
+            runOnUiThread(() -> {
+                permissions.release();
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                if (failure != null || result == null) {
+                    status.setText("Could not read dropped text. Files over 3 MB are not supported.");
+                    return;
+                }
+                insertDroppedText(result);
+            });
+        }, "pocketdex-editor-drop").start();
+        return true;
     }
 
     private void loadFile(Uri target) {
