@@ -56,32 +56,39 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Release latest APK
+      - name: Read app version
+        id: app_version
+        run: |
+          version="$(awk -F'"' '/versionName =/ { print $2; exit }' app/build.gradle.kts)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Publish versioned APK release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.app_version.outputs.version }}"
+          name: "PocketDeX v${{ steps.app_version.outputs.version }}"
+          body: |
+            PocketDeX v${{ steps.app_version.outputs.version }} desktop launcher APK.
+
+            Built from commit ${{ github.sha }} by GitHub Actions. The APK is also
+            available from the rolling `latest` release and this workflow's artifact.
+          files: app/build/outputs/apk/debug/app-debug.apk
+          prerelease: false
+          make_latest: false
+
+      - name: Update rolling latest APK
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: "PocketDeX - Desktop Mode Launcher (latest)"
           body: |
-            PocketDeX turns your Android phone or tablet into a PC-style desktop.
+            Rolling APK from PocketDeX v${{ steps.app_version.outputs.version }}.
 
-            v2.0 — the PocketDeX ecosystem: built-in Files, Editor, Terminal and
-            Calculator apps are now pinned into the desktop experience.
-
-            Features:
-            - PC-style desktop with wallpaper and app icon grid
-            - Start menu with instant app search and ecosystem tiles
-            - Taskbar with pinned and recent apps, clock, battery and network
-            - Windowed app launching (on devices that support freeform windows)
-            - Desktop mode on external monitors via HDMI/USB-C
-            - Files: browse storage (SAF), create/rename/delete, open in Editor
-            - Editor: load/save text files via SAF, wrap toggle, line/col status
-            - Terminal: embedded /system/bin/sh session with quick commands
-            - Calculator: expression calculator
-            - Keyboard and mouse support (Start key, arrows, Enter, Esc, right-click)
-            - Settings for icon size, columns, labels, taskbar auto-hide and more
-
-            Install the APK, press Home, and choose PocketDeX as your launcher.
+            Built from commit ${{ github.sha }} by GitHub Actions. For a stable
+            versioned download, use the v${{ steps.app_version.outputs.version }} release.
           files: app/build/outputs/apk/debug/app-debug.apk
           prerelease: false
           make_latest: true
