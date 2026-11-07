@@ -2,6 +2,7 @@ package com.pocketdex.launcher;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
@@ -53,8 +54,10 @@ public class SettingsActivity extends Activity {
     }
 
     private LinearLayout content;
+    private ScrollView settingsScroll;
     private TextView capabilityDetails;
     private TextView remoteSessionDetails;
+    private EditText remoteEndpoint;
     private int resourceHeadroomGeneration;
 
     @Override
@@ -62,18 +65,21 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
+        buildSettingsScreen();
+    }
 
-        ScrollView scroll = new ScrollView(this);
-        scroll.setBackgroundColor(BG);
-        scroll.setFillViewport(true);
+    private void buildSettingsScreen() {
+        settingsScroll = new ScrollView(this);
+        settingsScroll.setBackgroundColor(BG);
+        settingsScroll.setFillViewport(true);
 
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(18), dp(48), dp(18), dp(40));
-        scroll.addView(content, new ScrollView.LayoutParams(
+        settingsScroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        setContentView(scroll);
+        setContentView(settingsScroll);
 
         buildHeader();
         buildAppearance();
@@ -86,6 +92,34 @@ public class SettingsActivity extends Activity {
         buildBehavior();
         buildHome();
         buildAbout();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        int oldScrollRange = settingsScroll == null || settingsScroll.getChildAt(0) == null
+                ? 0 : Math.max(0, settingsScroll.getChildAt(0).getHeight()
+                - settingsScroll.getHeight());
+        float scrollFraction = oldScrollRange == 0 ? 0f
+                : (float) settingsScroll.getScrollY() / oldScrollRange;
+        String endpointText = remoteEndpoint == null
+                ? "" : remoteEndpoint.getText().toString();
+        int endpointSelection = remoteEndpoint == null
+                ? 0 : remoteEndpoint.getSelectionStart();
+        boolean endpointFocused = remoteEndpoint != null && remoteEndpoint.hasFocus();
+        super.onConfigurationChanged(newConfig);
+        buildSettingsScreen();
+        remoteEndpoint.setText(endpointText);
+        remoteEndpoint.setSelection(Math.max(0,
+                Math.min(endpointSelection, remoteEndpoint.length())));
+        if (endpointFocused) {
+            remoteEndpoint.requestFocus();
+        }
+        settingsScroll.post(() -> {
+            int newScrollRange = settingsScroll.getChildAt(0) == null ? 0
+                    : Math.max(0, settingsScroll.getChildAt(0).getHeight()
+                    - settingsScroll.getHeight());
+            settingsScroll.scrollTo(0, Math.round(scrollFraction * newScrollRange));
+        });
     }
 
     private int dp(float value) {
@@ -366,17 +400,17 @@ public class SettingsActivity extends Activity {
         explanation.setPadding(0, dp(10), 0, dp(8));
         remoteCard.addView(explanation);
 
-        EditText endpoint = new EditText(this);
-        endpoint.setSingleLine(true);
-        endpoint.setTextColor(TEXT);
-        endpoint.setHintTextColor(DIM);
-        endpoint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-        endpoint.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+        remoteEndpoint = new EditText(this);
+        remoteEndpoint.setSingleLine(true);
+        remoteEndpoint.setTextColor(TEXT);
+        remoteEndpoint.setHintTextColor(DIM);
+        remoteEndpoint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        remoteEndpoint.setInputType(android.text.InputType.TYPE_CLASS_TEXT
                 | android.text.InputType.TYPE_TEXT_VARIATION_URI);
-        endpoint.setHint("https://your-server/guacamole/");
-        endpoint.setText(getSharedPreferences(GuacamoleWorkspaceConfig.PREFS, MODE_PRIVATE)
+        remoteEndpoint.setHint("https://your-server/guacamole/");
+        remoteEndpoint.setText(getSharedPreferences(GuacamoleWorkspaceConfig.PREFS, MODE_PRIVATE)
                 .getString(GuacamoleWorkspaceConfig.KEY_ENDPOINT, ""));
-        remoteCard.addView(endpoint, new LinearLayout.LayoutParams(
+        remoteCard.addView(remoteEndpoint, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         switchRow(remoteCard, "Open Remote PC on an external display",
@@ -386,7 +420,7 @@ public class SettingsActivity extends Activity {
 
         actionButton(remoteCard, "Save and connect", () -> {
             android.net.Uri normalized = GuacamoleWorkspaceConfig
-                    .normalizeEndpoint(endpoint.getText().toString());
+                    .normalizeEndpoint(remoteEndpoint.getText().toString());
             if (normalized == null) {
                 android.widget.Toast.makeText(this,
                         "Enter a valid HTTPS Guacamole server address",

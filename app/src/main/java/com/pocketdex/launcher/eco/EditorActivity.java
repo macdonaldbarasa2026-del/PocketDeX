@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -71,6 +72,22 @@ public class EditorActivity extends Activity {
         if (uri != null) {
             loadFile(uri);
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        String text = editor == null ? "" : editor.getText().toString();
+        int selectionStart = editor == null ? 0 : editor.getSelectionStart();
+        int selectionEnd = editor == null ? 0 : editor.getSelectionEnd();
+        super.onConfigurationChanged(newConfig);
+        setContentView(buildUi());
+        editor.setText(text);
+        editor.setHorizontallyScrolling(!switchWrap);
+        int length = editor.length();
+        editor.setSelection(Math.max(0, Math.min(selectionStart, length)),
+                Math.max(0, Math.min(selectionEnd, length)));
+        updateTitle();
+        updateStatus();
     }
 
     private View buildUi() {

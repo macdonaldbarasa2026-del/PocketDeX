@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -75,6 +76,21 @@ public class FilesActivity extends Activity {
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
         restoreOrPickRoot();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        int firstVisible = list == null ? 0 : list.getFirstVisiblePosition();
+        String documentId = currentDocId;
+        String directoryName = title == null ? "Storage" : title.getText().toString();
+        super.onConfigurationChanged(newConfig);
+        setContentView(buildUi());
+        if (treeUri != null && documentId != null) {
+            loadDirectory(documentId, directoryName);
+            list.setSelection(firstVisible);
+        } else {
+            restoreOrPickRoot();
+        }
     }
 
     private View buildUi() {

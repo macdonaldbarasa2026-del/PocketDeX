@@ -1,6 +1,7 @@
 package com.pocketdex.launcher.eco;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -41,6 +42,15 @@ public class CalculatorActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        String expression = expr.toString();
+        super.onConfigurationChanged(newConfig);
+        setContentView(buildUi());
+        display.setText(expression);
+        refreshPreview();
     }
 
     private View buildUi() {

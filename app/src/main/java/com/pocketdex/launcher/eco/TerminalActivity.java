@@ -1,6 +1,7 @@
 package com.pocketdex.launcher.eco;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -43,6 +44,18 @@ public class TerminalActivity extends Activity implements ShellEngine.Listener {
         engine = new ShellEngine(this);
         appendBanner();
         updatePrompt();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        String previousOutput = output == null ? BANNER : output.getText().toString();
+        String pendingInput = input == null ? "" : input.getText().toString();
+        super.onConfigurationChanged(newConfig);
+        setContentView(buildUi());
+        output.setText(previousOutput);
+        input.setText(pendingInput);
+        updatePrompt();
+        scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
     }
 
     private View buildUi() {
