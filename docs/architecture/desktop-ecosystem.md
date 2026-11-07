@@ -67,9 +67,10 @@ resources as local RAM or local GPU capacity.
 
 1. **Desktop reliability:** validate launcher behavior across Android versions,
    external displays, keyboard/mouse, permissions, lifecycle and app resizing.
-2. **Runtime boundary:** add `AppDescriptor`, `SupportReport`,
-   `RuntimeProvider`, `RuntimeSession` and a registry; adapt current Android
-   launches without changing their behavior.
+2. **Runtime boundary:** add `AppDescriptor`, `SupportReport` and
+   `RuntimeProvider`; route Android launches through `AndroidAppRuntime` and
+   allow providers to register by runtime id. Continue with lifecycle sessions
+   and capability profiles before integrating a second backend.
 3. **Remote workspace prototype:** connect to a user-owned host over an
    authenticated, encrypted protocol; stream a single desktop session and
    support keyboard/mouse, resize and reconnect. Do not provision cloud compute
@@ -83,11 +84,14 @@ resources as local RAM or local GPU capacity.
 
 ## Current foundation
 
-PocketDeX already has the desktop launcher, app catalog, external-display
-presentation, built-in Files/Editor/Terminal/Calculator apps and Android app
-launch path. The next code change should introduce the runtime model around
-that launch path before adding emulation or cloud-provider dependencies. This
-keeps the existing launcher usable while new runtime types are developed.
+PocketDeX has the desktop launcher, app catalog, external-display presentation,
+built-in Files/Editor/Terminal/Calculator apps and Android app launch path. The
+Android launch path now goes through `AppDescriptor`, `RuntimeProvider`,
+`RuntimeRegistry` and `AndroidAppRuntime`, which reports whether an app is
+ready, missing, disabled or invalid. The registry can accept additional
+providers, but no Linux, Windows or remote provider exists yet. The next code
+milestone is capability reporting and runtime session lifecycle before
+connecting a second backend.
 
 ## Platform references
 
