@@ -175,6 +175,7 @@ public final class Panels {
 
         private TerminalWidget(Env env) {
             this.env = env;
+            engine = new ShellEngine(this);
             Context c = env.context();
             root = new LinearLayout(c);
             root.setOrientation(LinearLayout.VERTICAL);
@@ -252,7 +253,6 @@ public final class Panels {
             root.addView(runRow, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, dp(c, 34)));
 
-            engine = new ShellEngine(this);
             clear();
         }
 
@@ -388,6 +388,11 @@ public final class Panels {
             history.setGravity(Gravity.END);
             history.setSingleLine(true);
             history.setPadding(0, dp(c, 1), 0, dp(c, 1));
+            top.addView(history);
+
+            display = heading(c, "0", 20, TEXT, true);
+            display.setGravity(Gravity.END);
+            display.setSingleLine(true);
             history.setOnClickListener(v -> {
                 if (!lastResult.isEmpty()) {
                     expr.append(lastResult);
@@ -395,11 +400,6 @@ public final class Panels {
                     refreshPreview();
                 }
             });
-            top.addView(history);
-
-            display = heading(c, "0", 20, TEXT, true);
-            display.setGravity(Gravity.END);
-            display.setSingleLine(true);
             top.addView(display);
 
             preview = heading(c, "", 12, DIM, false);
