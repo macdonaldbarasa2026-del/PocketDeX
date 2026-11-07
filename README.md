@@ -66,9 +66,10 @@ any other app, and toggle the desktop ecosystem section in Settings.
 - **Desktop setup check** in Settings reports detected physical keyboard and
   pointer devices, active mode and density for usable external presentation
   displays, Android-advertised and kernel-accessible memory, a system-wide
-  available-memory snapshot, PocketDeX's approximate app heap class, an Android
-  thermal-status and 10-second headroom snapshots, secondary-display activity
-  support and whether Android advertises freeform window management. Freeform behavior can still
+  available-memory snapshot, PocketDeX's approximate app heap class, Android
+  thermal status and forecast, plus supported Android 16 CPU/GPU capacity
+  estimates, secondary-display activity support and whether Android advertises
+  freeform window management. Freeform behavior can still
   vary by display and device maker.
 - **Multiple built-in workspaces** — on Android 15+ System UI can offer new
   windows for Files, Editor, Terminal and Calculator. Availability depends on

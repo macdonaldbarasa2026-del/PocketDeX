@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.health.SystemHealthManager;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -24,6 +26,9 @@ import com.pocketdex.launcher.runtime.RuntimeSession;
 import com.pocketdex.launcher.runtime.RuntimeSessionStore;
 import com.pocketdex.launcher.runtime.WinlatorRuntime;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class SettingsActivity extends Activity {
 
     private static final int BG = 0xFF0B0D12;
@@ -32,6 +37,12 @@ public class SettingsActivity extends Activity {
     private static final int DIM = 0xFF9AA3B5;
     private static final int ACCENT = 0xFF4C8DFF;
     private static final int DIVIDER = 0xFF2A3040;
+    private static final ExecutorService RESOURCE_HEADROOM_EXECUTOR =
+            Executors.newSingleThreadExecutor(runnable -> {
+                Thread thread = new Thread(runnable, "PocketDeX-resource-headroom");
+                thread.setDaemon(true);
+                return thread;
+            });
 
     private interface BoolConsumer {
         void accept(boolean value);
@@ -44,6 +55,7 @@ public class SettingsActivity extends Activity {
     private LinearLayout content;
     private TextView capabilityDetails;
     private TextView remoteSessionDetails;
+    private int resourceHeadroomGeneration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -542,14 +554,65 @@ public class SettingsActivity extends Activity {
                 .append(thermalStatusLabel(profile.thermalStatus())).append("\n")
                 .append("10-second thermal headroom forecast: ")
                 .append(thermalHeadroomLabel(profile.thermalHeadroom())).append("\n")
-                .append("Thermal status is not a temperature reading; headroom is an estimate "
-                        + "and vendor reporting may vary. "
+                .append("CPU capacity headroom: ")
+                .append(Build.VERSION.SDK_INT >= 36 ? "checking…"
+                        : "not available (Android 16+)").append("\n")
+                .append("GPU capacity headroom: ")
+                .append(Build.VERSION.SDK_INT >= 36 ? "checking…"
+                        : "not available (Android 16+)").append("\n")
+                .append("Thermal status is not a temperature reading; estimates and device "
+                        + "support may vary. CPU/GPU values are capacity estimates, not "
+                        + "benchmark scores. "
                         + "Per-display policy may still ignore window bounds. "
-                        + "GPU performance is not measured.");
+                        + "App-level performance is not measured.");
         for (String displaySummary : profile.externalDisplaySummaries()) {
             details.append('\n').append(displaySummary);
         }
         capabilityDetails.setText(details.toString());
+        requestResourceHeadroomSnapshot(++resourceHeadroomGeneration);
+    }
+
+    private void requestResourceHeadroomSnapshot(int generation) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return;
+        }
+        RESOURCE_HEADROOM_EXECUTOR.execute(() -> {
+            float cpuHeadroom = Float.NaN;
+            float gpuHeadroom = Float.NaN;
+            try {
+                SystemHealthManager healthManager =
+                        getSystemService(SystemHealthManager.class);
+                if (healthManager != null) {
+                    cpuHeadroom = healthManager.getCpuHeadroom(null);
+                    gpuHeadroom = healthManager.getGpuHeadroom(null);
+                }
+            } catch (RuntimeException ignored) {
+                // Capacity estimates are optional and unsupported on some devices.
+            }
+            final float cpu = cpuHeadroom;
+            final float gpu = gpuHeadroom;
+            runOnUiThread(() -> {
+                if (generation != resourceHeadroomGeneration || capabilityDetails == null
+                        || isFinishing()) {
+                    return;
+                }
+                String details = capabilityDetails.getText().toString()
+                        .replace("CPU capacity headroom: checking…",
+                                "CPU capacity headroom: " + resourceHeadroomLabel(cpu))
+                        .replace("GPU capacity headroom: checking…",
+                                "GPU capacity headroom: " + resourceHeadroomLabel(gpu));
+                capabilityDetails.setText(details);
+            });
+        });
+    }
+
+    private String resourceHeadroomLabel(float headroom) {
+        if (Float.isNaN(headroom) || Float.isInfinite(headroom)
+                || headroom < 0f || headroom > 100f) {
+            return "not reported";
+        }
+        return String.format(java.util.Locale.ROOT, "%.0f%% estimated capacity available",
+                headroom);
     }
 
     private String thermalHeadroomLabel(float headroom) {

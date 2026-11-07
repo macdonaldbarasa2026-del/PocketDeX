@@ -24,6 +24,11 @@ echo workload (for example, an agreed test screen that visibly responds to
 input) or explicit instrumentation on both the Guacamole client and remote
 host. Guacamole's protocol synchronization keeps display updates ordered; it
 should not be presented as proof that a specific user input was applied.
+The client API exposes `Client.onstatechange` and `Client.onsync`. A sync event
+indicates the server finished processing earlier client operations and sent
+their results. These hooks can support instrumentation in a gateway page, but
+do not make a generic input's remote visual response measurable without a
+controlled echo workload.
 
 ### Safe implementation path
 
@@ -63,6 +68,15 @@ guarantee that sustained workloads are unthrottled. See the
 [PowerManager thermal API](https://developer.android.com/reference/android/os/PowerManager#getCurrentThermalStatus()),
 [Android thermal headroom guidance](https://developer.android.com/games/optimize/adpf/thermal),
 and [AOSP thermal mitigation notes](https://source.android.com/docs/core/power/thermal-mitigation).
+
+On Android 16/API 36+, Settings also queries `SystemHealthManager` for CPU and
+GPU capacity headroom on a background thread. Each is an optional 0–100 estimate
+of remaining device capacity, and may be unavailable or unsupported by the
+device. These calls perform synchronous system-service transactions and may
+take more than 1 ms, so PocketDeX keeps them off the UI thread. They describe
+available capacity, not per-app benchmark results or extra compute added to the
+phone. See the [Android 16 headroom overview](https://developer.android.com/about/versions/16/features)
+and [SystemHealthManager API](https://developer.android.com/reference/android/os/health/SystemHealthManager).
 
 ## Local runtime research
 
