@@ -166,14 +166,14 @@ public final class DeviceCapabilityProfile {
         if (refreshRate > 0f) {
             summary.append(", ").append(Math.round(refreshRate)).append(" Hz");
         }
-        try {
-            int densityDpi = context.createDisplayContext(display)
-                    .getResources().getConfiguration().densityDpi;
-            if (densityDpi > 0) {
-                summary.append(", ").append(densityDpi).append(" dpi");
-            }
-        } catch (Exception ignored) {
-            // Resolution and refresh rate remain useful if display resources are unavailable.
+        DisplayWindowMetrics appMetrics = DisplayWindowMetrics.forDisplay(context, display);
+        if (appMetrics.widthPixels > 0 && appMetrics.heightPixels > 0) {
+            summary.append(", max app area ").append(appMetrics.widthPixels)
+                    .append(" × ").append(appMetrics.heightPixels).append(" px");
+        }
+        int densityDpi = Math.round(appMetrics.density * 160f);
+        if (densityDpi > 0) {
+            summary.append(", ").append(densityDpi).append(" dpi");
         }
         return summary.toString();
     }

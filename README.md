@@ -67,9 +67,9 @@ any other app, and toggle the desktop ecosystem section in Settings.
   provide an OS-managed connected-display desktop workspace; it is separate
   from PocketDeX's optional presentation.
 - **Desktop setup check** in Settings reports detected physical keyboard and
-  pointer devices, active mode and density for usable external presentation
-  displays, Android-advertised and kernel-accessible memory, a system-wide
-  available-memory snapshot, PocketDeX's approximate app heap class, Android
+  pointer devices, physical mode, maximum app window area and density for usable
+  external presentation displays, Android-advertised and kernel-accessible
+  memory, a system-wide available-memory snapshot, PocketDeX's approximate app heap class, Android
   thermal status and forecast, plus Android 16 PocketDeX-process CPU and
   device-GPU capacity estimates when supported, secondary-display activity
   support and whether Android advertises

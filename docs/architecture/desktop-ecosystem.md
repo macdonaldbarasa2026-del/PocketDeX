@@ -169,6 +169,10 @@ minimum window size and cascade offset using the target display's density and
 clamps the result to that display's pixel bounds. This snapshot stays local; it
 does not claim to measure GPU performance or predict app compatibility. The
 registry can accept additional providers.
+On Android 11/API 30 and newer, PocketDeX obtains the target display's maximum
+window metrics through a window context. The external-display desktop uses the
+same dimensions for its grid and panel layout; earlier Android versions keep
+the `Display.getRealMetrics()` fallback.
 On Android 15+, Files, Editor, Terminal and Calculator declare
 `PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI`. These activities use the default
 multiple-instance-compatible launch mode, so supporting System UI's optional

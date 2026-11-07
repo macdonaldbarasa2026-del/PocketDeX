@@ -575,7 +575,7 @@ public class SettingsActivity extends Activity {
                 .append(" (snapshot; includes reclaimable RAM)\n")
                 .append("PocketDeX app heap class: ").append(appMemoryClass)
                 .append("; not device RAM\n")
-                .append("External presentation displays: ")
+                .append("External presentation displays (physical mode, max app area, density): ")
                 .append(profile.presentationDisplayCount()).append("\n")
                 .append("Activities on secondary displays: ")
                 .append(profile.supportsActivitiesOnSecondaryDisplays()

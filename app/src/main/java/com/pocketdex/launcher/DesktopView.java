@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import com.pocketdex.launcher.eco.EcoApps;
 import com.pocketdex.launcher.eco.Panels;
+import com.pocketdex.launcher.runtime.DisplayWindowMetrics;
 
 import java.util.Locale;
 
@@ -183,10 +184,13 @@ public class DesktopView extends FrameLayout {
     private DisplayMetrics metrics() {
         DisplayMetrics out = new DisplayMetrics();
         Display display = host.hostDisplay();
+        out.setTo(getResources().getDisplayMetrics());
         if (display != null) {
-            display.getRealMetrics(out);
-        } else {
-            out.setTo(getResources().getDisplayMetrics());
+            DisplayWindowMetrics windowMetrics = DisplayWindowMetrics.forDisplay(ctx, display);
+            out.widthPixels = windowMetrics.widthPixels;
+            out.heightPixels = windowMetrics.heightPixels;
+            out.density = windowMetrics.density;
+            out.densityDpi = Math.round(windowMetrics.density * 160f);
         }
         return out;
     }

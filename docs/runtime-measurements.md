@@ -126,7 +126,9 @@ display and its maximum window metrics; older Android versions fall back to
 `Display.getRealMetrics()`. Density comes from the target display's
 configuration when available. This follows Android's connected-display
 guidance and keeps physical-pixel bounds aligned with the display being
-targeted.
+targeted. The PocketDeX external-display desktop uses the same helper for its
+grid and panel sizing, while density-independent dimensions come from its
+display-specific UI context.
 
 ## AI and remote compute
 
