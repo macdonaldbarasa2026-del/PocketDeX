@@ -20,6 +20,13 @@ Winlator's exported launcher activity. The local dispatch history records
 that version, but cannot observe container or Windows app health. The Windows
 application setup and compatibility controls remain in Winlator.
 
+The [upstream Android manifest](https://github.com/brunodev85/winlator-app/blob/main/app/src/main/AndroidManifest.xml)
+currently exports `MainActivity`, while `XServerDisplayActivity` and the
+foreground service are not exported. The [upstream app build file](https://github.com/brunodev85/winlator-app/blob/main/app/build.gradle)
+identifies the package version in that source checkout. This is not a documented
+cross-app launch or status API, and can change between installed releases; the
+version capture helps keep integration observations tied to a specific build.
+
 ## Compatibility research
 
 Winlator's project describes Wine plus Box86/Box64 and notes application-level
@@ -33,6 +40,11 @@ observed result before making performance claims.
 The upstream release page distinguishes beta and final releases, so PocketDeX
 reports the installed package version instead of assuming a particular release
 is suitable or universally compatible.
+
+Winlator's own guidance directs users to configure per-game options through its
+home-screen shortcuts. PocketDeX therefore leaves executable selection and
+those compatibility settings to Winlator until upstream documents an external
+launch contract.
 
 References: [Winlator project](https://github.com/brunodev85/winlator),
 [Winlator app build configuration](https://github.com/brunodev85/winlator-app/blob/main/app/build.gradle),

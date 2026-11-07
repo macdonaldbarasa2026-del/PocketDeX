@@ -53,6 +53,9 @@ events. Any deeper integration should first identify a stable, documented
 Winlator interface and verify its compatibility, licensing, security and
 maintenance cost. Keep device/app/backend results in a manually verified
 compatibility matrix; a version label is not an app health measurement.
+The upstream source manifest currently exports the launcher but keeps its
+rendering activity and foreground service private, so PocketDeX cannot safely
+dispatch directly to a Windows app through those components.
 
 ## AI and remote compute
 

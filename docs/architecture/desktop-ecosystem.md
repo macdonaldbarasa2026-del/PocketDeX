@@ -154,6 +154,9 @@ The Guacamole runtime opens a user-managed HTTPS gateway for RDP/VNC sessions.
 reports the installed package version, then launches its home screen;
 `RuntimeSession` stores that version with the dispatch record. PocketDeX does
 not yet import individual Windows shortcuts or manage Winlator containers.
+The upstream manifest currently keeps the X server display activity and
+foreground service private, so this remains a launcher handoff rather than an
+app-specific launch integration.
 `RuntimeSession` and
 `RuntimeSessionStore` keep the latest 20 dispatch/session snapshots locally,
 without credentials or transferred file data. Settings exposes the latest
