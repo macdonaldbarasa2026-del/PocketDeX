@@ -228,3 +228,42 @@ index 3318b9f..5c1e347 100644
                          }
                      });
                  }
+diff --git a/app/src/main/res/values-pt/strings.xml b/app/src/main/res/values-pt/strings.xml
+index e2d342c..45eb160 100644
+--- a/app/src/main/res/values-pt/strings.xml
++++ b/app/src/main/res/values-pt/strings.xml
+@@ -245,7 +245,7 @@
+     <string name="system_font">Fonte do Sistema</string>
+     <string name="vulkan_version">Versão Vulkan</string>
+     <string name="exposed_extensions">Extensões Expostas</string>
+-    <string name="multiselection_combobox_display_text">%d de %d itens</string>
++    <string name="multiselection_combobox_display_text" formatted="false">%d de %d itens</string>
+     <string name="voltage">Tensão</string>
+     <string name="current">Corrente</string>
+     <string name="capacity">Capacidade</string>
+diff --git a/app/src/main/res/values-ru/strings.xml b/app/src/main/res/values-ru/strings.xml
+index 3475814..8d744e1 100644
+--- a/app/src/main/res/values-ru/strings.xml
++++ b/app/src/main/res/values-ru/strings.xml
+@@ -245,7 +245,7 @@
+     <string name="system_font">Системный шрифт</string>
+     <string name="vulkan_version">Версия Вулкана</string>
+     <string name="exposed_extensions">Открытые расширения</string>
+-    <string name="multiselection_combobox_display_text">%d из %d товаров</string>
++    <string name="multiselection_combobox_display_text" formatted="false">%d из %d товаров</string>
+     <string name="voltage">Напряжение</string>
+     <string name="current">ток</string>
+     <string name="capacity">Емкость</string>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 61fcd5e..8f25363 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -302,7 +302,7 @@
+     <string name="system_font">System Font</string>
+     <string name="vulkan_version">Vulkan Version</string>
+     <string name="exposed_extensions">Exposed Extensions</string>
+-    <string name="multiselection_combobox_display_text">%d of %d items</string>
++    <string name="multiselection_combobox_display_text" formatted="false">%d of %d items</string>
+     <string name="voltage">Voltage</string>
+     <string name="current">Current</string>
+     <string name="capacity">Capacity</string>
