@@ -29,7 +29,7 @@ import android.widget.TextView;
 
 import com.pocketdex.launcher.Prefs;
 import com.pocketdex.launcher.Ui;
-import com.pocketdex.launcher.runtime.WinlatorExecutableFile;
+import com.pocketdex.launcher.runtime.WindowsExecutableFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
