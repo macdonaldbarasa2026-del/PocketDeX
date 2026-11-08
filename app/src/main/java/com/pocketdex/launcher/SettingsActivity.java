@@ -339,7 +339,7 @@ public class SettingsActivity extends Activity {
                 checked -> Prefs.setBoolean(this, "windowed_apps", checked));
 
         switchRow(card, "Allow installed Android apps",
-                "When off, PocketDeX shows and launches only its built-in apps. Android still controls app windows when enabled.",
+                "When off, ordinary apps are hidden from the catalog. Android still owns their windows; this does not disable system screens or separate runtimes.",
                 Prefs.allowAndroidApps(this),
                 checked -> {
                     Prefs.setBoolean(this, "allow_android_apps", checked);
