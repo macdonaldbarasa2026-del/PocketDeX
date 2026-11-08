@@ -16,16 +16,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
@@ -33,7 +33,9 @@ jobs:
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
 
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
@@ -53,7 +55,7 @@ jobs:
           unzip -Z1 "$apk" | grep -q "classes.dex"
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pocketdex-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
@@ -68,7 +70,7 @@ jobs:
 
       - name: Publish versioned APK release
         if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: "v${{ steps.app_version.outputs.version }}"
           name: "PocketDeX v${{ steps.app_version.outputs.version }}"
@@ -83,7 +85,7 @@ jobs:
 
       - name: Update rolling latest APK
         if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: latest
           name: "PocketDeX - Desktop Mode Launcher (latest)"
