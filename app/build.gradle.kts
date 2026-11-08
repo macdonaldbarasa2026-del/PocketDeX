@@ -55,4 +55,5 @@ android {
 
 dependencies {
     implementation("androidx.webkit:webkit:1.18.0")
+    testImplementation("junit:junit:4.13.2")
 }
