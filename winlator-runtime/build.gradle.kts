@@ -3,6 +3,13 @@ plugins {
 }
 
 val upstreamApp = rootProject.file("third_party/winlator-app/app/src/main")
+val filteredWinlatorAssets = layout.buildDirectory.dir("generated/winlator-assets")
+
+val preparePocketDeXWinlatorAssets by tasks.registering(Sync::class) {
+    from(upstreamApp.resolve("assets"))
+    exclude("wincomponents/*.tzst", "soundfont/*.sf2")
+    into(filteredWinlatorAssets)
+}
 
 android {
     namespace = "com.winlator"
@@ -26,8 +33,7 @@ android {
             manifest.srcFile(upstreamApp.resolve("AndroidManifest.xml"))
             java.setSrcDirs(listOf(upstreamApp.resolve("java")))
             res.setSrcDirs(listOf(upstreamApp.resolve("res")))
-            assets.setSrcDirs(listOf(upstreamApp.resolve("assets")))
-            assets.exclude("wincomponents/*.tzst", "soundfont/*.sf2")
+            assets.setSrcDirs(listOf(filteredWinlatorAssets))
             jniLibs.setSrcDirs(listOf(upstreamApp.resolve("jniLibs")))
         }
     }
@@ -84,4 +90,5 @@ val preparePocketDeXWinlatorSources by tasks.registering {
 
 tasks.matching { it.name == "preBuild" }.configureEach {
     dependsOn(preparePocketDeXWinlatorSources)
+    dependsOn(preparePocketDeXWinlatorAssets)
 }
