@@ -225,6 +225,12 @@ public class MainActivity extends Activity implements DesktopView.Host {
         if (app == null) {
             return;
         }
+        if (!Prefs.allowAndroidApps(this)) {
+            Toast.makeText(this,
+                    "Installed Android apps are disabled in PocketDeX settings.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         intent.setComponent(app.component);

@@ -338,6 +338,14 @@ public class SettingsActivity extends Activity {
                 Prefs.windowedApps(this),
                 checked -> Prefs.setBoolean(this, "windowed_apps", checked));
 
+        switchRow(card, "Allow installed Android apps",
+                "When off, PocketDeX shows and launches only its built-in apps. Android still controls app windows when enabled.",
+                Prefs.allowAndroidApps(this),
+                checked -> {
+                    Prefs.setBoolean(this, "allow_android_apps", checked);
+                    AppRepo.invalidate();
+                });
+
         switchRow(card, "Double-tap to open", "Require two taps on desktop icons",
                 Prefs.doubleClick(this),
                 checked -> Prefs.setBoolean(this, "double_click", checked));

@@ -58,6 +58,11 @@ public final class Prefs {
         return get(c).getBoolean("windowed_apps", true);
     }
 
+    /** Whether the launcher may dispatch activities owned by other Android packages. */
+    public static boolean allowAndroidApps(Context c) {
+        return get(c).getBoolean("allow_android_apps", false);
+    }
+
     public static boolean showEcoOnDesktop(Context c) {
         return get(c).getBoolean("eco_desktop", true);
     }

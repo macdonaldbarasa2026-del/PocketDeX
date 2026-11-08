@@ -325,7 +325,9 @@ public class FilesActivity extends Activity {
     private void showFileMenu(Doc doc, View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
         menu.getMenu().add(0, 1, 0, "Open in Editor");
-        menu.getMenu().add(0, 2, 1, "Open with app");
+        if (Prefs.allowAndroidApps(this)) {
+            menu.getMenu().add(0, 2, 1, "Open with app");
+        }
         menu.getMenu().add(0, 3, 2, "Rename");
         menu.getMenu().add(0, 4, 3, "Delete");
         menu.getMenu().add(0, 5, 4, "Info");

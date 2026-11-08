@@ -100,9 +100,14 @@ any other app, and toggle the desktop ecosystem section in Settings.
   double-tap to launch, taskbar fade, fullscreen, clock seconds and external
   desktop toggle.
 - **Live updates**: package install/uninstall broadcasts refresh the app list.
-- **Limited app visibility**: the launcher queries apps with launcher activities
-  and declares Winlator by package; it does not request visibility of every
-  installed package.
+- **PocketDeX-only app mode**: installed Android apps are disabled by default.
+  Enable **Allow installed Android apps** in Settings to list and launch them;
+  Android still owns their processes and windows. Turning the option off also
+  removes Files' **Open with app** action. This is a launcher policy, not an
+  Android-wide kiosk lock or an app sandbox/virtualization layer.
+- **Limited app visibility**: when installed Android apps are enabled, the
+  launcher queries apps with launcher activities and declares Winlator by
+  package; it does not request visibility of every installed package.
 - **Set as default home**: press Home and choose PocketDeX.
 
 ## Install

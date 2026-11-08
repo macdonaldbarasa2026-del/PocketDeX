@@ -117,6 +117,9 @@ public final class AppRepo {
     }
 
     private static List<AppEntry> load(Context c) {
+        if (!Prefs.allowAndroidApps(c)) {
+            return Collections.emptyList();
+        }
         PackageManager pm = c.getPackageManager();
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
