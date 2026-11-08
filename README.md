@@ -38,7 +38,10 @@ without depending on whatever is installed on the phone:
 - **Local Windows** — launch the separately installed Winlator runtime on
   supported 64-bit ARM devices to run compatible x86-64 Windows applications.
   Files can stage a selected installer in Winlator's shared `D:\PocketDeX`
-  folder; choose a container and run it from Winlator.
+  folder; choose a container and run it from Winlator. The desktop setup check
+  reports ARM64, a 6 GiB planning reference and Android system Vulkan visibility
+  as an advisory preflight; this does not validate Winlator's renderer or any
+  particular Windows app.
 - **Linux desktop setup** — Settings includes a guide for a separately managed
   Termux + PRoot-Distro + Termux:X11 desktop. It shares Android's kernel and
   device resources; it is not a VM and PocketDeX does not execute Termux
@@ -156,6 +159,8 @@ For a separately managed Linux desktop, see Settings or the
 For research on Android shared memory compatibility, mobile GPU driver
 translation and off-device native builds, see
 [Android native runtime research](docs/android-native-runtime-research.md).
+For the source, dependency, licensing and staged integration audit of Winlator,
+see [Winlator integration audit](docs/winlator-integration-audit.md).
 For the Android app embedding limits, window behavior and remote `.exe` transfer
 path, see [Android app windowing research](docs/android-app-windowing.md).
 

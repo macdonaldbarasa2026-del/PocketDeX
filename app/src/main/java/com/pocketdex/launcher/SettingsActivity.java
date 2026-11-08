@@ -26,6 +26,7 @@ import com.pocketdex.launcher.runtime.GuacamoleWorkspaceConfig;
 import com.pocketdex.launcher.runtime.RuntimeSession;
 import com.pocketdex.launcher.runtime.RuntimeSessionStore;
 import com.pocketdex.launcher.runtime.VulkanDeviceProbe;
+import com.pocketdex.launcher.runtime.WinlatorCompatibilityEngine;
 import com.pocketdex.launcher.runtime.WinlatorRuntime;
 
 import java.util.concurrent.ExecutorService;
@@ -586,6 +587,7 @@ public class SettingsActivity extends Activity {
                 .append("Desktop setup: ").append(desktopSetup).append("\n")
                 .append("Android API: ").append(profile.androidApi()).append("\n")
                 .append("Supported app ABIs: ").append(abis).append("\n")
+                .append("Winlator hardware preflight: checking…\n")
                 .append("Vulkan GPU (system driver): checking…\n")
                 .append("Advertised device memory: ").append(advertisedMemory).append("\n")
                 .append("Kernel-accessible RAM: ").append(totalMemory).append("\n")
@@ -624,19 +626,22 @@ public class SettingsActivity extends Activity {
         }
         capabilityDetails.setText(details.toString());
         int generation = ++resourceHeadroomGeneration;
-        requestVulkanSnapshot(generation);
+        requestVulkanSnapshot(profile, generation);
         requestResourceHeadroomSnapshot(generation);
     }
 
-    private void requestVulkanSnapshot(int generation) {
+    private void requestVulkanSnapshot(DeviceCapabilityProfile profile, int generation) {
         RESOURCE_HEADROOM_EXECUTOR.execute(() -> {
             String vulkan = VulkanDeviceProbe.query();
+            String compatibility = WinlatorCompatibilityEngine.assess(profile, vulkan).summary();
             runOnUiThread(() -> {
                 if (generation != resourceHeadroomGeneration || capabilityDetails == null
                         || isFinishing()) {
                     return;
                 }
                 capabilityDetails.setText(capabilityDetails.getText().toString()
+                        .replace("Winlator hardware preflight: checking…",
+                                "Winlator hardware preflight: " + compatibility)
                         .replace("Vulkan GPU (system driver): checking…",
                                 "Vulkan GPU (system driver): " + vulkan));
             });
