@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.DocumentsContract;
 import android.text.Editable;
 import android.text.InputType;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 
 import com.pocketdex.launcher.Prefs;
 import com.pocketdex.launcher.Ui;
+import com.pocketdex.launcher.runtime.WinlatorExecutableFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -71,6 +73,8 @@ public final class Panels {
         void pickFilesRoot();
 
         void openWithSystem(Uri uri, String mime);
+
+        void stageExecutableForWinlator(Uri uri, String name);
 
         void toast(String message);
     }
@@ -930,10 +934,16 @@ public final class Panels {
         private void showFileMenu(Doc doc, View anchor) {
             PopupMenu menu = new PopupMenu(env.context(), anchor);
             menu.getMenu().add(0, 1, 0, "Open in Editor window");
-            menu.getMenu().add(0, 2, 1, "Open with app");
-            menu.getMenu().add(0, 3, 2, "Rename");
-            menu.getMenu().add(0, 4, 3, "Delete");
-            menu.getMenu().add(0, 5, 4, humanSize(doc.size));
+            if (Prefs.allowAndroidApps(env.context())) {
+                menu.getMenu().add(0, 2, 1, "Open with app");
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                    && WindowsExecutableFile.isExecutable(doc.name)) {
+                menu.getMenu().add(0, 6, 2, "Copy to Winlator and open");
+            }
+            menu.getMenu().add(0, 3, 3, "Rename");
+            menu.getMenu().add(0, 4, 4, "Delete");
+            menu.getMenu().add(0, 5, 5, humanSize(doc.size));
             menu.setOnMenuItemClickListener(item -> {
                 switch (item.getItemId()) {
                     case 1:
@@ -941,6 +951,9 @@ public final class Panels {
                         return true;
                     case 2:
                         env.openWithSystem(docUri(doc), doc.mime);
+                        return true;
+                    case 6:
+                        env.stageExecutableForWinlator(docUri(doc), doc.name);
                         return true;
                     case 3:
                         renameDocument(doc);

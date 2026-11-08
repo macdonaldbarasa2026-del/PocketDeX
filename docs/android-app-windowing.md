@@ -61,7 +61,8 @@ migration. See the Apache Guacamole
 and [RDP transfer configuration](https://guacamole.apache.org/doc/gug/configuring-guacamole.html#rdp).
 
 Winlator's current PocketDeX integration opens Winlator's home screen. It does
-not expose a documented cross-app API for PocketDeX to import `.exe` shortcuts,
-create containers, or embed the Windows app surface. Those tasks stay in
-Winlator unless its upstream project documents a supported integration
-contract. See [local Windows runtime notes](local-windows-runtime.md).
+not expose a documented cross-app API for PocketDeX to create containers,
+create `.exe` shortcuts, or embed the Windows app surface. PocketDeX Files can
+copy a selected executable into Winlator's shared Downloads drive and then
+open its home screen; the user still selects a container and runs the
+installer there. See [local Windows runtime notes](local-windows-runtime.md).

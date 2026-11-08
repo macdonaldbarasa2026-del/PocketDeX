@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
 import android.util.TypedValue;
@@ -27,6 +28,8 @@ import android.widget.Toast;
 import com.pocketdex.launcher.Prefs;
 import com.pocketdex.launcher.R;
 import com.pocketdex.launcher.Ui;
+import com.pocketdex.launcher.runtime.WinlatorExecutableLauncher;
+import com.pocketdex.launcher.runtime.WindowsExecutableFile;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -328,9 +331,13 @@ public class FilesActivity extends Activity {
         if (Prefs.allowAndroidApps(this)) {
             menu.getMenu().add(0, 2, 1, "Open with app");
         }
-        menu.getMenu().add(0, 3, 2, "Rename");
-        menu.getMenu().add(0, 4, 3, "Delete");
-        menu.getMenu().add(0, 5, 4, "Info");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                && WindowsExecutableFile.isExecutable(doc.name)) {
+            menu.getMenu().add(0, 6, 2, "Copy to Winlator and open");
+        }
+        menu.getMenu().add(0, 3, 3, "Rename");
+        menu.getMenu().add(0, 4, 4, "Delete");
+        menu.getMenu().add(0, 5, 5, "Info");
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1:
@@ -348,11 +355,18 @@ public class FilesActivity extends Activity {
                 case 5:
                     docInfo(doc);
                     return true;
+                case 6:
+                    stageExecutableForWinlator(doc);
+                    return true;
                 default:
                     return false;
             }
         });
         menu.show();
+    }
+
+    private void stageExecutableForWinlator(Doc doc) {
+        WinlatorExecutableLauncher.stage(this, documentUri(doc), doc.name);
     }
 
     private void openWithSystem(Doc doc) {

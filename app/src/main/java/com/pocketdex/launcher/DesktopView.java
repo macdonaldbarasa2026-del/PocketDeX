@@ -52,6 +52,7 @@ import java.util.Map;
 import com.pocketdex.launcher.eco.EcoApps;
 import com.pocketdex.launcher.eco.Panels;
 import com.pocketdex.launcher.runtime.DisplayWindowMetrics;
+import com.pocketdex.launcher.runtime.WinlatorExecutableLauncher;
 
 import java.util.Locale;
 
@@ -342,6 +343,11 @@ public class DesktopView extends FrameLayout {
                 } catch (Exception e) {
                     Toast.makeText(ctx, "No app can open this", Toast.LENGTH_SHORT).show();
                 }
+            }
+
+            @Override
+            public void stageExecutableForWinlator(Uri uri, String name) {
+                WinlatorExecutableLauncher.stage(ctx, uri, name);
             }
 
             @Override

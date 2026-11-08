@@ -15,9 +15,11 @@ without depending on whatever is installed on the phone:
 
 - **Files** — storage file manager over Android's Storage Access Framework.
   Pick a storage root once, then browse folders, open text files in the
-  built-in Editor, open other files with any installed app, create folders
-  and files, rename and delete. Hold and drag a file to share it with another
-  app using a temporary read-only URI grant.
+  built-in Editor, create folders and files, rename and delete. On Android
+  10+, a selected `.exe` can be copied to shared `Downloads/PocketDeX` and
+  Winlator opened. Other files can be opened with an installed app when that
+  option is enabled. Hold and drag a file to share it with another app using
+  a temporary read-only URI grant.
 - **Editor** — plain-text editor with load/save over SAF, "Save As",
   word-wrap toggle, live line/column status, monospace typography and hardware
   keyboard shortcuts (`Ctrl+S` to save, `Ctrl+Shift+S` to save as). Drop one
@@ -35,6 +37,8 @@ without depending on whatever is installed on the phone:
   replaced through Reconnect.
 - **Local Windows** — launch the separately installed Winlator runtime on
   supported 64-bit ARM devices to run compatible x86-64 Windows applications.
+  Files can stage a selected installer in Winlator's shared `D:\PocketDeX`
+  folder; choose a container and run it from Winlator.
 - **Linux desktop setup** — Settings includes a guide for a separately managed
   Termux + PRoot-Distro + Termux:X11 desktop. It shares Android's kernel and
   device resources; it is not a VM and PocketDeX does not execute Termux
