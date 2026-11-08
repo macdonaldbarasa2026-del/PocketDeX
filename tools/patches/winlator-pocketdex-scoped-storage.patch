@@ -1,3 +1,66 @@
+diff --git a/app/src/main/java/com/winlator/ContainerDetailFragment.java b/app/src/main/java/com/winlator/ContainerDetailFragment.java
+index 8b8cd46..01e5d2c 100644
+--- a/app/src/main/java/com/winlator/ContainerDetailFragment.java
++++ b/app/src/main/java/com/winlator/ContainerDetailFragment.java
+@@ -509,33 +509,31 @@ public class ContainerDetailFragment extends Fragment {
+ 
+         popupMenu.setOnMenuItemClickListener((menuItem) -> {
+             int itemId = menuItem.getItemId();
+-            switch (itemId) {
+-                case R.id.menu_item_open_directory:
+-                    openDirectoryCallback = (path) -> {
+-                        drive.path = path;
+-                        editText.setText(path);
+-                    };
+-
+-                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+-                    intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(Environment.getExternalStorageDirectory()));
+-                    activity.startActivityFromFragment($this, intent, MainActivity.OPEN_DIRECTORY_REQUEST_CODE);
+-                    break;
+-                case R.id.menu_item_downloads:
+-                    drive.path = AppUtils.DIRECTORY_DOWNLOADS;
+-                    editText.setText(AppUtils.DIRECTORY_DOWNLOADS);
+-                    break;
+-                case R.id.menu_item_internal_storage:
+-                    drive.path = AppUtils.INTERNAL_STORAGE;
+-                    editText.setText(AppUtils.INTERNAL_STORAGE);
+-                    break;
+-                default:
+-                    Container container = manager.getContainerById(menuItem.getOrder());
+-                    if (container != null) {
+-                        String path = container.getRootDir()+"/.wine/drive_c";
+-                        drive.path = path;
+-                        editText.setText(path);
+-                    }
+-                    break;
++            if (itemId == R.id.menu_item_open_directory) {
++                openDirectoryCallback = (path) -> {
++                    drive.path = path;
++                    editText.setText(path);
++                };
++
++                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
++                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(Environment.getExternalStorageDirectory()));
++                activity.startActivityFromFragment($this, intent, MainActivity.OPEN_DIRECTORY_REQUEST_CODE);
++            }
++            else if (itemId == R.id.menu_item_downloads) {
++                drive.path = AppUtils.DIRECTORY_DOWNLOADS;
++                editText.setText(AppUtils.DIRECTORY_DOWNLOADS);
++            }
++            else if (itemId == R.id.menu_item_internal_storage) {
++                drive.path = AppUtils.INTERNAL_STORAGE;
++                editText.setText(AppUtils.INTERNAL_STORAGE);
++            }
++            else {
++                Container container = manager.getContainerById(menuItem.getOrder());
++                if (container != null) {
++                    String path = container.getRootDir()+"/.wine/drive_c";
++                    drive.path = path;
++                    editText.setText(path);
++                }
+             }
+             return true;
+         });
 diff --git a/app/src/main/java/com/winlator/MainActivity.java b/app/src/main/java/com/winlator/MainActivity.java
 index dd126b1..864d4fc 100644
 --- a/app/src/main/java/com/winlator/MainActivity.java
@@ -92,6 +155,111 @@ index 3bb2d01..5e8992e 100644
  
          final Spinner sMIDIInputDevice = view.findViewById(R.id.SMIDIInputDevice);
          String midiInputDevice = preferences.getString("midi_input_device", "auto");
+diff --git a/app/src/main/java/com/winlator/XServerDisplayActivity.java b/app/src/main/java/com/winlator/XServerDisplayActivity.java
+index 53fb456..7e43b25 100644
+--- a/app/src/main/java/com/winlator/XServerDisplayActivity.java
++++ b/app/src/main/java/com/winlator/XServerDisplayActivity.java
+@@ -356,28 +356,28 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
+     @Override
+     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+         final GLRenderer renderer = xServerView.getRenderer();
+-        switch (item.getItemId()) {
+-            case R.id.menu_item_keyboard:
+-                AppUtils.showKeyboard(this);
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_input_controls:
+-                showInputControlsDialog();
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_toggle_fullscreen:
+-                renderer.toggleFullscreen();
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_task_manager:
+-                (new TaskManagerDialog(this)).show();
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_active_windows:
+-                (new ActiveWindowsDialog(this)).show();
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_magnifier:
++        int itemId = item.getItemId();
++        if (itemId == R.id.menu_item_keyboard) {
++            AppUtils.showKeyboard(this);
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_input_controls) {
++            showInputControlsDialog();
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_toggle_fullscreen) {
++            renderer.toggleFullscreen();
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_task_manager) {
++            (new TaskManagerDialog(this)).show();
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_active_windows) {
++            (new ActiveWindowsDialog(this)).show();
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_magnifier) {
+                 if (magnifierView == null) {
+                     final FrameLayout container = findViewById(R.id.FLXServerDisplay);
+                     magnifierView = new MagnifierView(this);
+@@ -392,29 +392,28 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
+                     });
+                     container.addView(magnifierView);
+                 }
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_screen_effect:
+-                (new ScreenEffectDialog(this)).show();
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_pip_mode:
+-                PictureInPictureParams pipParams = (new PictureInPictureParams.Builder())
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_screen_effect) {
++            (new ScreenEffectDialog(this)).show();
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_pip_mode) {
++            PictureInPictureParams pipParams = (new PictureInPictureParams.Builder())
+                     .setAspectRatio(screenInfo.aspectRatio())
+                     .build();
+-                enterPictureInPictureMode(pipParams);
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_logs:
+-                debugDialog.show();
+-                drawerLayout.closeDrawers();
+-                break;
+-            case R.id.menu_item_touchpad_help:
+-                showTouchpadHelpDialog();
+-                break;
+-            case R.id.menu_item_exit:
+-                exit();
+-                break;
++            enterPictureInPictureMode(pipParams);
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_logs) {
++            debugDialog.show();
++            drawerLayout.closeDrawers();
++        }
++        else if (itemId == R.id.menu_item_touchpad_help) {
++            showTouchpadHelpDialog();
++        }
++        else if (itemId == R.id.menu_item_exit) {
++            exit();
+         }
+         return true;
+     }
 diff --git a/app/src/main/java/com/winlator/container/Container.java b/app/src/main/java/com/winlator/container/Container.java
 index 2086786..6dcb91d 100644
 --- a/app/src/main/java/com/winlator/container/Container.java
