@@ -1,6 +1,7 @@
 package com.pocketdex.launcher;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -29,6 +30,11 @@ import com.pocketdex.launcher.runtime.VulkanDeviceProbe;
 import com.pocketdex.launcher.runtime.WinlatorCompatibilityEngine;
 import com.pocketdex.launcher.runtime.WinlatorRuntime;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -453,22 +459,58 @@ public class SettingsActivity extends Activity {
     private void buildLocalWindowsRuntime() {
         section("Local Windows runtime");
         LinearLayout runtimeCard = card();
-        TextView description = subtitleText("Winlator can run some x86-64 Windows apps locally "
-                + "using Wine and Box64. It requires a 64-bit ARM device and is installed separately. "
-                + "Compatibility varies by app, device and graphics backend; PocketDeX records the "
-                + "installed version and launch dispatch, not container or app health. Winlator's "
-                + "current app interface exposes its launcher, not direct Windows app launch.");
+        String runtimeDescription = BuildConfig.EMBEDDED_WINLATOR
+                ? "Winlator 11.2 is integrated into this ARM64 PocketDeX build. Windows programs "
+                + "run in its Wine/Box64 environment and display through its X server. Imported "
+                + "files and containers stay in PocketDeX app-specific storage. Compatibility "
+                + "varies by program and hardware."
+                : "Winlator can run some x86-64 Windows apps locally using Wine and Box64. It "
+                + "requires a 64-bit ARM device and is installed separately. Compatibility varies "
+                + "by app, device and graphics backend; PocketDeX records launch dispatch, not "
+                + "container or app health.";
+        TextView description = subtitleText(runtimeDescription);
         description.setPadding(0, dp(10), 0, dp(8));
         runtimeCard.addView(description);
-        actionButton(runtimeCard, "Open official Winlator releases", () -> {
+        actionButton(runtimeCard, BuildConfig.EMBEDDED_WINLATOR
+                ? "View Winlator source and license" : "Open official Winlator releases", () -> {
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW,
-                        android.net.Uri.parse(WinlatorRuntime.RELEASES_URL)));
+                        android.net.Uri.parse(BuildConfig.EMBEDDED_WINLATOR
+                                ? "https://github.com/brunodev85/winlator-app/tree/a030f552f452158a2db64fdb32b490fa19c0b48d"
+                                : WinlatorRuntime.RELEASES_URL)));
             } catch (Exception e) {
-                android.widget.Toast.makeText(this, "Unable to open Winlator releases",
+                android.widget.Toast.makeText(this, "Unable to open Winlator source",
                         android.widget.Toast.LENGTH_SHORT).show();
             }
         });
+        if (BuildConfig.EMBEDDED_WINLATOR) {
+            actionButton(runtimeCard, "Show included license notices",
+                    this::showEmbeddedRuntimeNotices);
+        }
+    }
+
+    private void showEmbeddedRuntimeNotices() {
+        StringBuilder notices = new StringBuilder();
+        try (InputStream input = getAssets().open(
+                "open-source-licenses/THIRD-PARTY-NOTICES.txt");
+             BufferedReader reader = new BufferedReader(
+                     new InputStreamReader(input, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                notices.append(line).append('\n');
+            }
+        } catch (IOException e) {
+            notices.append("Third-party notices could not be loaded.");
+        }
+        TextView body = subtitleText(notices.toString());
+        body.setPadding(dp(16), dp(12), dp(16), dp(12));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(body);
+        new AlertDialog.Builder(this)
+                .setTitle("Open-source notices")
+                .setView(scroll)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     private void buildLinuxRuntime() {

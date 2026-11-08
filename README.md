@@ -35,13 +35,14 @@ without depending on whatever is installed on the phone:
   the PC runs on the configured remote host. Gateway owners can optionally
   report coarse connection state; a stopped Android WebView renderer can be
   replaced through Reconnect.
-- **Local Windows** — launch the separately installed Winlator runtime on
-  supported 64-bit ARM devices to run compatible x86-64 Windows applications.
-  Files can stage a selected installer in Winlator's shared `D:\PocketDeX`
-  folder; choose a container and run it from Winlator. The desktop setup check
-  reports ARM64, a 6 GiB planning reference and Android system Vulkan visibility
-  as an advisory preflight; this does not validate Winlator's renderer or any
-  particular Windows app.
+- **Local Windows** — the `embeddedWinlator` ARM64 build packages the pinned
+  Winlator runtime and its Wine/Box64 environment in PocketDeX. Imported EXE
+  files are staged in PocketDeX app-private storage and opened by Winlator's
+  own activities. The separate `standard` build retains external-runtime
+  handoff. This initial embedded integration does not yet place Winlator's X11
+  surface inside PocketDeX's custom desktop window manager or auto-run imports;
+  users configure a Winlator container and start the EXE from Winlator. GPU and
+  Windows-app compatibility still require device-level validation.
 - **Linux desktop setup** — Settings includes a guide for a separately managed
   Termux + PRoot-Distro + Termux:X11 desktop. It shares Android's kernel and
   device resources; it is not a VM and PocketDeX does not execute Termux
@@ -149,7 +150,8 @@ See [the remote workspace setup notes](docs/remote-workspace.md) for the
 connection model and security requirements. Remote downloads use Android's
 save picker and follow only HTTPS redirects on the configured server origin.
 
-Local Windows execution requires Winlator to be installed separately. See
+The embedded ARM64 APK bundles the Winlator runtime; the standard APK requires
+Winlator to be installed separately. See
 [the local compatibility notes](docs/local-windows-runtime.md) for support
 limits and the official download source.
 

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="false"
+        tools:replace="android:required" />
+
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:node="remove" />
+
+    <application
+        tools:remove="android:allowAudioPlaybackCapture,android:appCategory,android:isGame">
+
+        <activity
+            android:name="com.winlator.MainActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            tools:replace="android:exported,android:resizeableActivity">
+            <intent-filter tools:node="removeAll" />
+            <layout
+                android:defaultWidth="88%"
+                android:defaultHeight="88%"
+                android:gravity="center"
+                android:minWidth="420dp"
+                android:minHeight="320dp" />
+        </activity>
+
+        <activity
+            android:name="com.winlator.XServerDisplayActivity"
+            android:resizeableActivity="true"
+            tools:replace="android:resizeableActivity">
+            <layout
+                android:defaultWidth="94%"
+                android:defaultHeight="92%"
+                android:gravity="center"
+                android:minWidth="480dp"
+                android:minHeight="320dp" />
+        </activity>
+    </application>
+</manifest>

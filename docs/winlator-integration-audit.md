@@ -112,8 +112,39 @@ intent extras and expect Windows execution to work.
 - PocketDeX has no declared root license. Before copying LGPL code, resolve
   PocketDeX's own licensing and satisfy the LGPL notice/source and relinking
   requirements for any distributed combined work. GPL components require
-  separate distribution analysis. No Winlator code or binary payload is copied
-  by this audit or this first implementation.
+  separate distribution analysis. The current branch now pins the Winlator app
+  and Box64 as source submodules and adds an embedded runtime flavor. Do not
+  treat the notices as a complete binary SBOM: compressed rootfs and native
+  payload provenance and license/source parity still need a full file-level
+  audit before claiming distribution compliance.
+
+## Embedded runtime implementation status
+
+- `third_party/winlator-app` pins upstream app commit
+  `a030f552f452158a2db64fdb32b490fa19c0b48d`; `third_party/box64` pins
+  `2f130fab1d6e1a4ee8a71dc60cfdfcc839ad192a`. PocketDeX's source adaptations
+  are maintained as `tools/patches/winlator-pocketdex-scoped-storage.patch`
+  and applied by the runtime module during `preBuild`.
+- `:winlator-runtime` compiles Winlator's Java/resources/native CMake project
+  as an Android library. `embeddedWinlator` packages its activities and ARM64
+  native payload into the same APK. `standard` remains a separate flavor. The
+  embedded flavor excludes upstream Microsoft Windows component archives and
+  SONiVOX soundfont files; containers default those Windows components off.
+- The patch redirects Winlator's D:/E: storage roots, logs and control exports
+  to PocketDeX app-specific directories, removes the startup broad-storage
+  permission gate, disables default Windows redistributable downloads, and
+  makes restart target the bundled Winlator activity. EXE import copies a
+  SAF-selected file to PocketDeX private external storage before launching
+  Winlator. Android still owns lifecycle and activity windows.
+- The APK's embedded activity opens Winlator's own container UI. This is a
+  real runtime inclusion, but not yet PocketDeX-managed X11 windows or a
+  one-click EXE/container launcher. Do not claim either capability until
+  implemented and tested. Android activity embedding is a possible later
+  route; it requires explicit host activity/window orchestration.
+- The release workflow checks out submodules, provisions both NDK versions,
+  tests both variants, builds both APKs, and checks the embedded APK contains
+  Winlator native code and rootfs. CI success demonstrates packaging/build,
+  not successful EXE execution on a physical device.
 
 ## Phased implementation plan
 

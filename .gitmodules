@@ -1,0 +1,6 @@
+[submodule "third_party/winlator-app"]
+	path = third_party/winlator-app
+	url = https://github.com/brunodev85/winlator-app
+[submodule "third_party/box64"]
+	path = third_party/box64
+	url = https://github.com/ptitSeb/box64

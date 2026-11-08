@@ -1,0 +1,41 @@
+PocketDeX embedded Windows runtime — third-party notices
+
+This Windows-enabled PocketDeX build incorporates the Android application source
+from Winlator's app submodule at commit
+a030f552f452158a2db64fdb32b490fa19c0b48d. Its upstream project and source are
+at https://github.com/brunodev85/winlator and
+https://github.com/brunodev85/winlator-app/tree/a030f552f452158a2db64fdb32b490fa19c0b48d.
+Winlator's GNU Lesser General Public License version 2.1 text is in
+WINLATOR-LGPL-2.1.txt. PocketDeX's scoped-storage and embedded-activity changes
+are in tools/patches/winlator-pocketdex-scoped-storage.patch in the PocketDeX
+source repository.
+
+Box64 0.4.4 is distributed under the MIT License. Its corresponding source is
+included as the third_party/box64 submodule at commit
+2f130fab1d6e1a4ee8a71dc60cfdfcc839ad192a. The license text is in BOX64-MIT.txt.
+
+Additional bundled native projects with notices preserved from the inspected
+Winlator source include libadrenotools (BSD 2-Clause), its linker namespace
+helper (BSD 2-Clause), and FluidSynth (LGPL). Their license texts are included
+in this directory. Native renderer and asset dependencies have separate
+upstream terms; see the integration audit and source tree before redistribution.
+
+The embedded flavor does not package Winlator's wincomponents/*.tzst archives,
+which contain Microsoft DirectX and Visual C++ redistributable files, and does
+not package its SONiVOX soundfont. New containers default those optional
+components off. Users may import files they are licensed to use through the
+file picker. Wine's own compatibility fonts are part of Wine, not Microsoft
+Windows font files.
+
+Runtime source references for the pinned asset versions include:
+- Wine 10.10: https://gitlab.winehq.org/wine/wine/-/tree/wine-10.10
+- DXVK 1.10.3 and 2.4.1: https://github.com/doitsujin/dxvk
+- VKD3D 2.14.1: https://gitlab.winehq.org/wine/vkd3d
+- Mesa-family Turnip, VirGL and Zink assets: https://gitlab.freedesktop.org/mesa/mesa
+- PulseAudio: https://gitlab.freedesktop.org/pulseaudio/pulseaudio
+
+This notice identifies the projects inspected for this integration. It is not
+a complete file-level software bill of materials for the compressed rootfs and
+graphics/audio archives. Complete package provenance, corresponding-source
+verification, and device runtime testing remain required before declaring the
+embedded runtime release-ready.

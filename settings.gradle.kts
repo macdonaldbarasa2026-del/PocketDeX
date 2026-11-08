@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "PocketDeX"
-include(":app")
+include(":app", ":winlator-runtime")

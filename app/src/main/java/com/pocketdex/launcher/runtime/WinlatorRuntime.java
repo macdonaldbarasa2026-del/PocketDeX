@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import com.pocketdex.launcher.BuildConfig;
+
 /** Launch bridge to the separately installed Winlator x86-64 Windows runtime. */
 public final class WinlatorRuntime implements RuntimeProvider {
     private static final int MAX_VERSION_LABEL_LENGTH = 32;
@@ -31,6 +33,11 @@ public final class WinlatorRuntime implements RuntimeProvider {
             return new SupportReport(SupportReport.Status.UNSUPPORTED,
                     "Winlator requires a 64-bit ARM Android device.");
         }
+        if (BuildConfig.EMBEDDED_WINLATOR) {
+            return new SupportReport(SupportReport.Status.READY,
+                    "Winlator 11.2 is bundled in PocketDeX. It runs in PocketDeX's app-private "
+                            + "storage; compatibility varies by Windows app and device.");
+        }
         try {
             PackageInfo installed = context.getPackageManager()
                     .getPackageInfo(PACKAGE_NAME, 0);
@@ -54,7 +61,13 @@ public final class WinlatorRuntime implements RuntimeProvider {
         if (!report.isReady()) {
             throw new IllegalStateException(report.message());
         }
-        Intent intent = context.getPackageManager().getLaunchIntentForPackage(PACKAGE_NAME);
+        Intent intent;
+        if (BuildConfig.EMBEDDED_WINLATOR) {
+            intent = new Intent();
+            intent.setClassName(context.getPackageName(), "com.winlator.MainActivity");
+        } else {
+            intent = context.getPackageManager().getLaunchIntentForPackage(PACKAGE_NAME);
+        }
         if (intent == null) {
             throw new IllegalStateException("Winlator has no launchable activity.");
         }
@@ -74,6 +87,9 @@ public final class WinlatorRuntime implements RuntimeProvider {
     }
 
     private String installedVersion(Context context) {
+        if (BuildConfig.EMBEDDED_WINLATOR) {
+            return "11.2 (bundled)";
+        }
         try {
             PackageInfo info = context.getPackageManager().getPackageInfo(PACKAGE_NAME, 0);
             return safeVersion(info.versionName);

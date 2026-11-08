@@ -9,6 +9,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,6 +73,61 @@ public final class WinlatorExecutableTransfer {
             }
             throw new IOException("Could not copy the executable to shared Downloads.", e);
         }
+    }
+
+    /** Copies an EXE into the embedded runtime's app-private D: drive. */
+    public static File copyToPocketDeXRuntime(Context context, Uri source, String sourceName)
+            throws IOException {
+        if (context == null || source == null || !WindowsExecutableFile.isExecutable(sourceName)) {
+            throw new IllegalArgumentException("A context, source URI and .exe file are required.");
+        }
+        File downloads = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (downloads == null) {
+            downloads = new File(context.getFilesDir(), "Winlator/Downloads");
+        }
+        File targetDirectory = new File(downloads, SUBDIRECTORY);
+        if (!targetDirectory.isDirectory() && !targetDirectory.mkdirs()) {
+            throw new IOException("Could not create PocketDeX's private Windows drive folder.");
+        }
+
+        String displayName = uniquePrivateDisplayName(targetDirectory,
+                WindowsExecutableFile.safeFileName(sourceName));
+        File target = new File(targetDirectory, displayName);
+        File temporary = File.createTempFile("pocketdex-exe-", ".part", targetDirectory);
+        try {
+            try (InputStream input = context.getContentResolver().openInputStream(source);
+                 OutputStream output = new FileOutputStream(temporary)) {
+                if (input == null) {
+                    throw new IOException("Android could not open the selected file.");
+                }
+                byte[] buffer = new byte[64 * 1024];
+                int count;
+                while ((count = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, count);
+                }
+                output.flush();
+            }
+            if (!temporary.renameTo(target)) {
+                throw new IOException("Could not finish copying the executable.");
+            }
+            return target;
+        } catch (Exception e) {
+            temporary.delete();
+            if (e instanceof IOException) {
+                throw (IOException) e;
+            }
+            throw new IOException("Could not copy the executable into PocketDeX storage.", e);
+        }
+    }
+
+    private static String uniquePrivateDisplayName(File directory, String requestedName) {
+        String base = requestedName.substring(0, requestedName.length() - 4);
+        String candidate = requestedName;
+        int suffix = 2;
+        while (new File(directory, candidate).exists()) {
+            candidate = base + " (" + suffix++ + ").exe";
+        }
+        return candidate;
     }
 
     private static String uniqueDisplayName(ContentResolver resolver, String requestedName) {

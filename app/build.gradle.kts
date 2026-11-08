@@ -23,6 +23,21 @@ android {
         }
     }
 
+    flavorDimensions += "windowsRuntime"
+    productFlavors {
+        create("standard") {
+            dimension = "windowsRuntime"
+            buildConfigField("boolean", "EMBEDDED_WINLATOR", "false")
+        }
+        create("embeddedWinlator") {
+            dimension = "windowsRuntime"
+            buildConfigField("boolean", "EMBEDDED_WINLATOR", "true")
+            ndk {
+                abiFilters += "arm64-v8a"
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -55,5 +70,6 @@ android {
 
 dependencies {
     implementation("androidx.webkit:webkit:1.18.0")
+    add("embeddedWinlatorImplementation", project(":winlator-runtime"))
     testImplementation("junit:junit:4.13.2")
 }
